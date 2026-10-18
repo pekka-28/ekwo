@@ -1,6 +1,6 @@
-import {displayDate,displayEntryDate,summaryEntry} from './format.js';
+import {displayDate,displayEntryDate,summaryEntry} from './format.js?v=compact-dates-v1';
 import Mustache from './vendor/mustache.mjs';
-import {prepareEvents,minorUnits,money,transactionTooltip} from './events-view.js';
+import {prepareEvents,minorUnits,money,transactionTooltip} from './events-view.js?v=compact-dates-v1';
 export const reportTemplateNames=['case','journal','t-account','event','shell','wrapper-style','branding','outcome','transactions','transaction-set'];
 export function impactRows(data,id){
  const chosen=data.scenarios.find(s=>s.id===id);if(!chosen)return [];

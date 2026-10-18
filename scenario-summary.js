@@ -1,5 +1,5 @@
-import {eventsMarkup} from './events-view.js';
-import {summaryEntry} from './format.js';
+import {eventsMarkup} from './events-view.js?v=compact-dates-v1';
+import {summaryEntry} from './format.js?v=compact-dates-v1';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function healthMarkup(health){
  const status=health?.status||'Unchecked';

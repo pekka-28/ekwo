@@ -1,4 +1,4 @@
-import {displayEntryDate,summaryEntry} from './format.js';
+import {displayEntryDate,summaryEntry} from './format.js?v=compact-dates-v1';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function minorUnits(value){
   const match=String(value??0).match(/^(-?)(\d+)(?:\.(\d{1,2})0*)?$/);

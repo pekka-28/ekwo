@@ -2,7 +2,7 @@
 .case-document header{border-bottom:1px solid #cbd1dc;margin-bottom:28px}
 .case-document h1{font-size:32px;line-height:1.2}.case-document h2{font-size:23px;line-height:1.3;margin:28px 0 12px}
 .case-document section{margin:24px 0}.case-document p{margin:12px 0}.case-document .description-text{white-space:pre-wrap;overflow-wrap:anywhere}
-.case-document table{width:100%;border-collapse:collapse;font:13px/1.45 system-ui,sans-serif}
+.case-document table{width:auto;max-width:100%;table-layout:auto;border-collapse:collapse;font:13px/1.45 system-ui,sans-serif}
 .case-document th,.case-document td{padding:9px;border-bottom:1px solid #d9dee7;text-align:left;vertical-align:top}
 .case-document th{background:#f4f6fb;color:#202532;font-weight:600;text-transform:none;letter-spacing:0}
 .case-document caption,.case-document .figure-caption{font-style:italic;text-align:left;margin:12px 0;color:#202532}
@@ -29,3 +29,5 @@
 .case-document .report-caption{font-style:italic;margin:16px 0 8px;break-after:avoid}.case-document .report-journal td{overflow-wrap:anywhere}.case-document .report-journal tbody+tbody tr:first-child td{border-top:2px solid #cbd1dc}.case-document .report-journal thead{display:table-header-group}
 
 .case-document .report-account-detail thead{display:table-header-group}.case-document .report-account-detail .account-heading{break-after:avoid}.case-document .report-account-detail td{overflow-wrap:anywhere}.case-document h3{break-after:avoid}
+
+.case-document .report-journal td:first-child,.case-document .report-account-detail td:first-child{white-space:nowrap;overflow-wrap:normal}.case-document table .event-number{width:1%}
