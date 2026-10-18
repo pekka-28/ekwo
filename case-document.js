@@ -1,6 +1,6 @@
 import {displayDate} from './format.js';
 import Mustache from './vendor/mustache.mjs';
-import {prepareEvents,minorUnits,money} from './events-view.js';
+import {prepareEvents,minorUnits,money,transactionTooltip} from './events-view.js';
 export const reportTemplateNames=['case','journal','t-account','event','shell','wrapper-style'];
 export function impactRows(data,id){
  const chosen=data.scenarios.find(s=>s.id===id);if(!chosen)return [];
@@ -11,7 +11,7 @@ export function impactRows(data,id){
  return [...rows.values()].map(r=>({...r,change:r.chosen-r.baseline})).sort((a,b)=>a.code.localeCompare(b.code,'en',{numeric:true}));
 }
 const amount=n=>n===0n?'':money(n);
-const eventData=({entry,line,amount:n})=>({date:displayDate(entry.entry_date),description:entry.description,lineDescription:line?.name||line?.description,reference:entry.reference||entry.id,state:entry.state,amount:n===undefined?'':money(n)});
+const eventData=({entry,line,amount:n})=>({date:displayDate(entry.entry_date),description:entry.description,tooltip:transactionTooltip(entry,line),lineDescription:(line?.name||line?.description)!==entry.description?(line?.name||line?.description):null,reference:entry.reference||entry.id,state:entry.state,amount:n===undefined?'':money(n)});
 export function reportModel(data){
  const options=JSON.parse(data.templates.options||'{"transactions":"none"}'),mode=options.transactions;
  if(!['none','journal','accounts'].includes(mode))throw Error('Unknown report transaction presentation');
