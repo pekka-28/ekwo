@@ -25,3 +25,5 @@
 .case-document .report-brand{display:flex;align-items:center;gap:24px}.report-brand img{display:block;max-width:180px;max-height:90px;object-fit:contain}.report-brand.logo-right{flex-direction:row-reverse;justify-content:space-between}.report-brand h1{color:var(--report-accent,inherit)}.report-brand .brand-text{min-width:0;overflow-wrap:anywhere}
 
 .case-document .report-brand[style]{border-bottom-color:var(--report-accent)}
+
+.case-document .report-caption{font-style:italic;margin:16px 0 8px;break-after:avoid}.case-document .report-journal td{overflow-wrap:anywhere}.case-document .report-journal tbody+tbody tr:first-child td{border-top:2px solid #cbd1dc}.case-document .report-journal thead{display:table-header-group}

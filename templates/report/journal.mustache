@@ -1,7 +1,6 @@
-<article class="event-journal"><header><span>{{date}}</span><span>{{description}}</span><small>{{reference}}</small></header>
-  <div class="event-scroll"><table><caption>Table {{table}} Journal entry ({{currency}})</caption>
-    <thead><tr><th>Account</th><th>Name</th><th>Description</th><th class="event-number">Debit</th><th class="event-number">Credit</th></tr></thead>
-    <tbody>{{#lines}}<tr><td>{{code}}</td><td>{{name}}</td><td>{{description}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/lines}}</tbody>
-    <tfoot><tr><th colspan="3">Total</th><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr></tfoot>
-  </table></div>
-</article>
+<p class="report-caption">Table {{table}} {{name}} journal ({{currency}})</p>
+<div class="event-scroll"><table class="report-journal">
+  <thead><tr><th>Date</th><th>Transaction</th><th>Reference</th><th>Account</th><th>Name</th><th>Description</th><th class="event-number">Debit</th><th class="event-number">Credit</th></tr></thead>
+  {{#entries}}<tbody>{{#lines}}<tr><td>{{eventDate}}</td><td>{{eventDescription}}</td><td>{{eventReference}}</td><td>{{code}}</td><td>{{name}}</td><td>{{description}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/lines}}</tbody>{{/entries}}
+  <tfoot><tr><th colspan="6">Total</th><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr></tfoot>
+</table></div>

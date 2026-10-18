@@ -13,13 +13,13 @@
     {{^summary}}<p>No scenario is selected. The alternatives are compared with the Applied contribution.</p>{{/summary}}
     {{#scenarios}}<h2>{{name}}</h2><div class="description-text">{{description}}</div><p>Health: {{health}}. Transactions use the {{level}} presentation.</p>{{#findings}}<p>{{text}} {{entry}}</p>{{/findings}}{{/scenarios}}
     {{#outcomes}}<p>{{name}}: {{status}}.{{#empty}} No change to the Applied contribution.{{/empty}}{{^empty}} <em>Table {{table}}</em> gives its supporting outcome.{{/empty}} Health: {{health}}.</p>{{/outcomes}}
-    {{#tables}}<p><em>Table {{number}}</em> records {{name}} on {{date}}.</p>{{/tables}}
-    {{#figures}}<p><em>Figure {{number}}</em> shows the selected movements in {{name}}.</p>{{/figures}}
+    {{#tables}}<p><em>Table {{number}}</em> contains the complete {{level}} journal for {{name}}.</p>{{/tables}}
+    {{#figures}}<p><em>Figure {{number}}</em> groups the selected account movements for {{name}}.</p>{{/figures}}
   </section>
   <section class="report-tables">
-    <table><caption>Table {{alternativesTable}} Scenarios</caption><thead><tr><th>Scenario</th><th>Status</th><th>Entries</th></tr></thead><tbody>{{#alternatives}}<tr><td>{{name}}</td><td>{{status}}</td><td class="event-number">{{entryCount}}</td></tr>{{/alternatives}}</tbody></table>
-    {{#scenarios}}{{#journals}}{{> journal}}{{/journals}}{{#accounts}}{{> t-account}}{{/accounts}}{{/scenarios}}
-    {{#summary}}<table><caption>Table {{table}} {{name}} incremental impact ({{currency}})</caption><thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead><tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody></table>{{/summary}}
-    {{#outcomes}}{{^empty}}<table><caption>Table {{table}} {{name}} outcome ({{currency}})</caption><thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead><tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody></table>{{/empty}}{{/outcomes}}
+    <p class="report-caption">Table {{alternativesTable}} Scenarios</p><table><thead><tr><th>Scenario</th><th>Status</th><th>Entries</th></tr></thead><tbody>{{#alternatives}}<tr><td>{{name}}</td><td>{{status}}</td><td class="event-number">{{entryCount}}</td></tr>{{/alternatives}}</tbody></table>
+    {{#scenarios}}{{#journal}}{{> journal}}{{/journal}}{{#accountsFigure}}<div class="report-account-group">{{#accounts}}{{> t-account}}{{/accounts}}<p class="figure-caption">Figure {{accountsFigure}} {{name}} account movements ({{currency}})</p></div>{{/accountsFigure}}{{/scenarios}}
+    {{#summary}}<p class="report-caption">Table {{table}} {{name}} incremental impact ({{currency}})</p><table><thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead><tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody></table>{{/summary}}
+    {{#outcomes}}{{^empty}}<p class="report-caption">Table {{table}} {{name}} outcome ({{currency}})</p><table><thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead><tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody></table>{{/empty}}{{/outcomes}}
   </section>
 </article>
