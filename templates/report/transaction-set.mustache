@@ -1,0 +1,7 @@
+{{^empty}}
+{{#showJournal}}{{> journal}}{{/showJournal}}
+{{#showTAccounts}}<div class="report-account-group">{{#accounts}}{{> t-account}}{{/accounts}}<p class="figure-caption">Figure 1 {{name}} account movements ({{currency}})</p></div>{{/showTAccounts}}
+{{#showAccounts}}<p class="report-caption">Table {{table}} {{name}} accounts ({{currency}})</p>
+<table class="report-accounts"><thead><tr><th>Code</th><th>Account</th><th class="event-number">Debit</th><th class="event-number">Credit</th><th class="event-number">Balance change</th></tr></thead>
+<tbody>{{#accounts}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debitMovement}}</td><td class="event-number">{{creditMovement}}</td><td class="event-number">{{change}}</td></tr>{{/accounts}}</tbody></table>{{/showAccounts}}
+{{/empty}}

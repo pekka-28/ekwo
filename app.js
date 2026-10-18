@@ -2,7 +2,7 @@ import {reportLogo} from './report-branding.js';
 import {scenarioName,canReview,summaryMarkup} from './scenario-summary.js';
 import {displayDate} from './format.js';
 import {openEventEditor} from './event-editor.js';
-import {documentHtml} from './case-document.js';
+import {documentHtml} from './case-document.js?v=mustache-flags-v2';
 import {eventsMarkup} from './events-view.js';
 import {nativeIcon} from './icons.js';
 ﻿import {config} from './config.js';
@@ -81,7 +81,7 @@ async function openEvents(c,s){
  const company=companyId;const snapshot=await rpc('scenario_snapshot',{p_company:company,p_scenario:s.id});
  if(companyId!==company||caseId!==c.id)return;
  if(!canReview(snapshot?.health)){eventReview=null;await refresh();notice('Events review is unavailable until this scenario reconciles.');return;}
- eventReview={company,case:c.id,scenario:s,...snapshot};renderEvents(c);
+ eventLevel=snapshot.presentation?.level||'summary';eventMode=snapshot.presentation?.transactions||'journal';eventReview={company,case:c.id,scenario:s,...snapshot};renderEvents(c);
 }
 function renderEvents(c){
  rememberView();
@@ -95,8 +95,13 @@ function renderEvents(c){
  if(capture){$('add-event').onclick=()=>task(()=>addEvent(s));$('assign-event').onclick=()=>assignEvent(s);}
  $('events-cases').onclick=e=>{e.preventDefault();eventReview=null;caseId=null;render();};
  $('events-case').onclick=e=>{e.preventDefault();eventReview=null;task(()=>refresh());};
- $('events-level').onchange=e=>{eventLevel=e.target.value;renderEvents(c);$('events-level').focus();};
- $('events-view').onchange=e=>{const expanded=$('content').querySelector('details')?.open;eventMode=e.target.value;renderEvents(c);const details=$('content').querySelector('details');if(details)details.open=!!expanded;$('events-view').focus();};
+ $('events-level').onchange=e=>{const level=e.target.value;task(()=>saveEventPresentation(c,s,level,eventMode));};
+ $('events-view').onchange=e=>{const view=e.target.value;task(()=>saveEventPresentation(c,s,eventLevel,view));};
+}
+async function saveEventPresentation(c,s,level,view){
+ const expanded=$('content').querySelector('details')?.open;$('events-level').disabled=true;$('events-view').disabled=true;
+ try{await rpc('event_presentation_save',{p_company:companyId,p_scenario:s.id,p_level:level,p_view:view});eventLevel=level;eventMode=view;}
+ finally{renderEvents(c);const details=$('content').querySelector('details');if(details)details.open=!!expanded;}
 }
 async function addEvent(s){
  const company=companyId;const accounts=await api('/rest/v1/accounts?select=id,code,name&company_id=eq.'+encodeURIComponent(company)+'&order=code',null,'GET');
@@ -125,7 +130,7 @@ function assignEvent(s){
  });
 }
 async function openCaseDocument(c){
- const [data,response]=await Promise.all([rpc('report_issue',{p_company:companyId,p_case:c.id,p_options:{transactions:eventMode==='chart'?'accounts':eventMode,level:eventLevel}}),fetch('case-document.css')]);
+ const [data,response]=await Promise.all([rpc('report_create',{p_company:companyId,p_case:c.id,p_renderer:'mustache-flags-v2'}),fetch('case-document.css',{cache:'reload'})]);
  if(!data)throw Error('Case not found');if(!response.ok)throw Error('Document stylesheet unavailable');
  const branding=await reportLogo(data.company,{project:config.url,token:auth.access_token,key:config.publishableKey});data.company.report_logo_data=branding.logo;if(branding.warning)notice(branding.warning);
  const html=documentHtml(data,await response.text());await rpc('report_finish',{p_report:data.report_id,p_html:html});const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
