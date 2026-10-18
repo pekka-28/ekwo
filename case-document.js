@@ -1,4 +1,4 @@
-import {displayDate} from './format.js';
+import {displayEntryDate,summaryEntry} from './format.js';
 import Mustache from './vendor/mustache.mjs';
 import {prepareEvents,minorUnits,money,transactionTooltip} from './events-view.js';
 export const reportTemplateNames=['case','journal','t-account','event','shell','wrapper-style'];
@@ -11,7 +11,7 @@ export function impactRows(data,id){
  return [...rows.values()].map(r=>({...r,change:r.chosen-r.baseline})).sort((a,b)=>a.code.localeCompare(b.code,'en',{numeric:true}));
 }
 const amount=n=>n===0n?'':money(n);
-const eventData=({entry,line,amount:n})=>({date:displayDate(entry.entry_date),description:entry.description,tooltip:transactionTooltip(entry,line),lineDescription:(line?.name||line?.description)!==entry.description?(line?.name||line?.description):null,reference:entry.reference||entry.id,state:entry.state,amount:n===undefined?'':money(n)});
+const eventData=({entry,line,amount:n})=>({date:displayEntryDate(entry),description:entry.description,tooltip:transactionTooltip(entry,line),lineDescription:(line?.name||line?.description)!==entry.description?(line?.name||line?.description):null,reference:entry.reference||entry.id,state:entry.state,amount:n===undefined?'':money(n)});
 export function reportModel(data){
  const options=JSON.parse(data.templates.options||'{"transactions":"none"}'),mode=options.transactions;
  if(!['none','journal','accounts'].includes(mode))throw Error('Unknown report transaction presentation');
@@ -20,7 +20,7 @@ export function reportModel(data){
  date:new Intl.DateTimeFormat('en-ZA',{day:'numeric',month:'long',year:'numeric',timeZone:'Africa/Johannesburg'}).format(new Date(data.generated_at)),
  justification:data.case.notes||'No case justification recorded.',alternativesTable:table,alternatives:data.scenarios.map(s=>({name:s.name,status:s.status,entryCount:s.entries.length})),scenarios:[]};
  for(const s of data.scenarios){
-  const prepared=prepareEvents(s.summary_entries??s.entries),section={health:s.health?.status||'Unchecked',findings:(s.health?.issues||[]).map(i=>({text:i.message||i.code.replaceAll('_',' '),entry:i.entry_id})),name:s.name,description:s.description||'No scenario description recorded.',empty:mode!=='none'&&!s.entries.length,journals:[],accounts:[],detailJournals:[]};
+  const prepared=prepareEvents(s.summary_entries?s.summary_entries.map(summaryEntry):s.entries),section={health:s.health?.status||'Unchecked',findings:(s.health?.issues||[]).map(i=>({text:i.message||i.code.replaceAll('_',' '),entry:i.entry_id})),name:s.name,description:s.description||'No scenario description recorded.',empty:mode!=='none'&&!s.entries.length,journals:[],accounts:[],detailJournals:[]};
   if(mode==='journal')for(const entry of prepared.journals){let debit=0n,credit=0n;const lines=entry.lines.map(l=>{const dr=minorUnits(l.debit),cr=minorUnits(l.credit);debit+=dr;credit+=cr;return {code:l.account_code,name:l.account_name,description:l.name||l.description,debit:amount(dr),credit:amount(cr)};});section.journals.push({...eventData({entry}),table:++table,lines,debit:amount(debit),credit:amount(credit)});}
   if(mode==='accounts')for(const a of prepared.accounts)section.accounts.push({figure:++figure,code:a.code,name:a.name,debits:a.debits.map(eventData),credits:a.credits.map(eventData),debit:money(a.debit>a.credit?a.debit:a.credit),credit:money(a.debit>a.credit?a.debit:a.credit),debitCarry:a.credit>a.debit?money(a.credit-a.debit):'',creditCarry:a.debit>a.credit?money(a.debit-a.credit):''});
   if(options.details&&mode!=='none')for(const entry of prepareEvents(s.entries).journals){let debit=0n,credit=0n;const lines=entry.lines.map(l=>{const dr=minorUnits(l.debit),cr=minorUnits(l.credit);debit+=dr;credit+=cr;return {code:l.account_code,name:l.account_name,description:l.name||l.description,debit:amount(dr),credit:amount(cr)};});section.detailJournals.push({...eventData({entry}),table:++table,lines,debit:amount(debit),credit:amount(credit)});}

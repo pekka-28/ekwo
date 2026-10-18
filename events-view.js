@@ -1,4 +1,4 @@
-import {displayDate} from './format.js';
+import {displayEntryDate} from './format.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function minorUnits(value){
   const match=String(value??0).match(/^(-?)(\d+)(?:\.(\d{1,2})0*)?$/);
@@ -33,18 +33,18 @@ export function journalMarkup(model){
   return model.journals.map(entry=>{
     let debit=0n,credit=0n;
     const rows=entry.lines.map(line=>{const dr=minorUnits(line.debit),cr=minorUnits(line.credit);debit+=dr;credit+=cr;return `<tr><td>${esc(line.account_code)}</td><td>${esc(line.account_name)}</td><td>${esc(line.name||line.description)}</td>${amountCell(dr)}${amountCell(cr)}</tr>`;}).join('');
-    return `<details class="event-journal"><summary><span>${esc(displayDate(entry.entry_date))} · ${esc(entry.description)}${entry.reference?` <small>${esc(entry.reference)}</small>`:''}</span><span class="event-number">${money(debit)}</span></summary><header><span class="state">${esc(entry.state)}</span></header><div class="event-scroll"><table><thead><tr><th>Account</th><th>Name</th><th>Description</th><th class="event-number">Debit</th><th class="event-number">Credit</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3">Total</th>${amountCell(debit)}${amountCell(credit)}</tr></tfoot></table></div></details>`;
+    return `<details class="event-journal"><summary><span>${esc(displayEntryDate(entry))} · ${esc(entry.description)}${entry.reference?` <small>${esc(entry.reference)}</small>`:''}</span><span class="event-number">${money(debit)}</span></summary><header><span class="state">${esc(entry.state)}</span></header><div class="event-scroll"><table><thead><tr><th>Account</th><th>Name</th><th>Description</th><th class="event-number">Debit</th><th class="event-number">Credit</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3">Total</th>${amountCell(debit)}${amountCell(credit)}</tr></tfoot></table></div></details>`;
   }).join('');
 }
 export function transactionTooltip(entry,line){
- const header=[displayDate(entry.entry_date),entry.description,entry.reference||entry.id,entry.state].filter(Boolean).join(' · ');
+ const header=[displayEntryDate(entry),entry.description,entry.reference||entry.id,entry.state].filter(Boolean).join(' · ');
  const lines=(line?[line]:[]).map(l=>{
   const description=l.name||l.description;
   return [l.account_code,l.account_name,description&&description!==entry.description?description:null,minorUnits(l.debit)!==0n?money(minorUnits(l.debit))+' Dr':null,minorUnits(l.credit)!==0n?money(minorUnits(l.credit))+' Cr':null].filter(Boolean).join(' · ');
  });
  return [header,...lines].join('\n');
 }
-function side(events,total,carried=0n){return `<div class="t-side">${events.map(({entry,line,amount})=>`<div class="t-line" title="${esc(transactionTooltip(entry,line))}"><span><span class="event-date">${esc(displayDate(entry.entry_date))}</span> · ${esc(entry.description)}${entry.reference?` <small>${esc(entry.reference)}</small>`:''}</span><span class="event-number">${money(amount)}</span></div>`).join('')}${carried?`<div class="t-carry"><span>Balance c/f</span><span class="event-number">${money(carried)}</span></div>`:''}<div class="t-total"><span>Total</span><span class="event-number">${money(total)}</span></div></div>`;}
+function side(events,total,carried=0n){return `<div class="t-side">${events.map(({entry,line,amount})=>`<div class="t-line" title="${esc(transactionTooltip(entry,line))}"><span><span class="event-date">${esc(displayEntryDate(entry))}</span> · ${esc(entry.description)}${entry.reference?` <small>${esc(entry.reference)}</small>`:''}</span><span class="event-number">${money(amount)}</span></div>`).join('')}${carried?`<div class="t-carry"><span>Balance c/f</span><span class="event-number">${money(carried)}</span></div>`:''}<div class="t-total"><span>Total</span><span class="event-number">${money(total)}</span></div></div>`;}
 export function accountsMarkup(model){
   return model.accounts.map(account=>{
     const total=account.debit>account.credit?account.debit:account.credit;
