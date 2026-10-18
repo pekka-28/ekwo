@@ -1,0 +1,15 @@
+{
+  "company": "layout-dashboard",
+  "sales": "file-text",
+  "purchases": "shopping-bag",
+  "bank": "landmark",
+  "contacts": "book-user",
+  "matching": "link-2",
+  "statements": "scale",
+  "year-end": "calendar-check",
+  "chart": "book-open",
+  "import": "upload",
+  "cockpit": "compass",
+  "products": "package",
+  "company-settings": "settings"
+}

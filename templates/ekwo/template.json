@@ -1,0 +1,43 @@
+{
+  "name": "Ekwo interface template",
+  "version": 1,
+  "source": {
+    "at": "2026-10-18T00:41:37.191Z",
+    "page": "https://cloud.ekwo.ai/",
+    "stylesheet": "https://cloud.ekwo.ai/assets/index-CM0wOfmZ.css",
+    "method": "Rendered native DOM and stylesheet copied; project password login replaces Cloud code/OAuth; Cloud signup and legal footer removed; no Cloud runtime or backend configuration copied."
+  },
+  "slots": {
+    "shell": [
+      "TITLE",
+      "CSP",
+      "APP_STYLES",
+      "CONTENT",
+      "DIALOGS",
+      "ACCOUNT_LINKS",
+      "APP_SCRIPTS"
+    ],
+    "landing": [
+      "TITLE",
+      "CSP",
+      "LOGIN_FORM",
+      "APP_SCRIPTS"
+    ]
+  },
+  "responsibilities": [
+    "Native stylesheet and fonts",
+    "Landing-page structure",
+    "Company picker structure",
+    "Desktop folding sidebar",
+    "Mobile navigation drawer",
+    "Account menu and appearance controls"
+  ],
+  "excluded": [
+    "Authentication and credentials",
+    "Company data and permissions",
+    "Case and Scenario entities",
+    "Transaction handling",
+    "Cloud account, project and agent services"
+  ],
+  "contract": "Applications populate company-options, company-name, side-menu and account-name, bind company-toggle and sign-out, and provide page content. Native accounting links may open separately. No database or application identifiers are embedded."
+}
