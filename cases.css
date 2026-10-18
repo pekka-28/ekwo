@@ -84,3 +84,5 @@ textarea{font:inherit;border:1px solid var(--line);background:var(--surface);col
 .events-scope .t-line{display:flex;align-items:baseline;gap:8px}.events-scope .t-line>span:first-child{flex:1;min-width:0}.events-scope .t-line .event-date{display:inline;white-space:normal}.events-scope .t-line small{display:inline}
 
 .scenario-name[data-health=Incomplete]{color:#946200}.scenario-name[data-health=Inconsistent]{color:#b42318}.scenario-name[data-health=Unchecked]{color:var(--muted)}#page-content button[data-events]:disabled{cursor:not-allowed;opacity:.4;color:var(--muted)}
+
+.events-switch select{min-width:120px;width:auto}.events-scope .t-line .t-description{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}.events-scope .t-line .event-number{flex:0 0 auto;margin-top:0}.events-scope .t-line .event-date{white-space:nowrap}.t-account h2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.event-accounts{width:100%}.event-accounts td:nth-child(2){max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
