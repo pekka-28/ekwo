@@ -8,10 +8,11 @@
       <tbody>{{#alternatives}}<tr><td>{{name}}</td><td>{{status}}</td><td class="event-number">{{entryCount}}</td></tr>{{/alternatives}}</tbody>
     </table></div>
   </section>
-  {{#scenarios}}<section><h2>{{name}}</h2><div class="description-text">{{description}}</div>
+  {{#scenarios}}<section><h2>{{name}}</h2><p>Health: {{health}}</p>{{#findings}}<p>{{text}} {{entry}}</p>{{/findings}}<div class="description-text">{{description}}</div>
     {{#empty}}<p>This scenario has no incremental entries.</p>{{/empty}}
     {{#journals}}{{> journal}}{{/journals}}
     {{#accounts}}{{> t-account}}{{/accounts}}
+    {{#detailJournals}}{{> journal}}{{/detailJournals}}
   </section>{{/scenarios}}
   <section><h2>Summary impact</h2>
     {{#summary}}

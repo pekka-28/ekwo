@@ -78,3 +78,5 @@ textarea{font:inherit;border:1px solid var(--line);background:var(--surface);col
 .t-carry{display:flex;justify-content:space-between;gap:8px;padding:6px 12px;font-size:13px}
 
 .case-description summary:before,.scenario-description summary:before{content:"›";display:inline-block;margin-right:8px}.case-description[open] summary:before,.scenario-description[open] summary:before{content:"⌄"}
+
+.scenario-health{display:inline-block;font-size:12px;border-radius:999px;padding:4px 10px;background:var(--track)}.scenario-health[data-health=Consistent]{background:#e4f3eb;color:#205d3c}.scenario-health[data-health=Incomplete]{background:#fff0d7;color:#765017}.scenario-health[data-health=Inconsistent]{background:#fce5e5;color:#8e2727}.health-result{margin-bottom:18px}.health-result details{margin-top:12px}.summary-detail{margin-top:16px}.summary-detail>summary{cursor:pointer;padding:10px 0}.health-result li{overflow-wrap:anywhere}
