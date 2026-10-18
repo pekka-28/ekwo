@@ -31,3 +31,27 @@ textarea{font:inherit;border:1px solid var(--line);background:var(--surface);col
 .references h2{font-family:Fraunces,serif;font-size:22px}
 
 #breadcrumb a{color:inherit;text-decoration:none}#breadcrumb a:hover{color:var(--blue)}
+
+.events-scope{border:2px solid #c97b27;border-radius:20px;padding:20px;min-width:0}
+.events-summary{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;margin-bottom:24px;font-size:13px}
+.events-summary strong{color:var(--ink)}
+.events-switch{display:flex;gap:4px}
+#page-content .events-switch [aria-pressed=true]{background:var(--pale);border-color:var(--blue);color:var(--color-brand-deep)}
+.event-journal{margin:0 0 24px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.event-journal header{display:grid;gap:4px;padding:16px;background:var(--paper)}
+.event-journal small,.t-line small{display:block;color:var(--muted);overflow-wrap:anywhere}
+.event-date{display:block;font-variant-numeric:tabular-nums}
+.event-scroll{overflow-x:auto}
+.event-number{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.event-journal tfoot{border-top:2px solid var(--line)}
+.t-account{margin-bottom:32px}
+.t-account h2{font-family:var(--font-serif);font-size:22px;margin:0;padding:12px 0;border-bottom:2px solid var(--ink)}
+.t-head,.t-sides{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.t-head>span{padding:8px 12px;font-size:12px;text-transform:uppercase;letter-spacing:.1em}
+.t-head>span+span,.t-side+.t-side{border-left:2px solid var(--ink)}
+.t-side{display:flex;flex-direction:column;min-width:0}
+.t-line{display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--line);font-size:13px;overflow-wrap:anywhere}
+.t-line>div{min-width:0}
+.t-total{display:flex;justify-content:space-between;gap:8px;margin-top:auto;padding:12px;border-top:1px solid var(--line);font-size:13px}
+.t-movement{text-align:right;margin-top:8px;font-size:13px}
+@media(max-width:600px){.events-scope{padding:12px}.t-line{display:block;padding:8px}.t-line>.event-number{display:block;margin-top:8px}.t-total{padding:8px;font-size:12px}.events-switch button{padding:8px 12px!important}.t-account h2{font-size:18px}}

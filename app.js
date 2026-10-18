@@ -1,9 +1,10 @@
+import {eventsMarkup} from './events-view.js';
 import {nativeIcon} from './icons.js';
 ﻿import {config} from './config.js';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const states=['Proposal','Reviewing','Accepted','Applied','Retired'];
 let auth=null;try{auth=JSON.parse(sessionStorage.getItem('ekwo-lustre-session')||'null')}catch{sessionStorage.removeItem('ekwo-lustre-session')}
-let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null;
+let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null,eventReview=null,eventMode='journal';
 const nativeBase='https://cloud.ekwo.ai';
 const nativeUrl=path=>companyId?`${nativeBase}/c/${encodeURIComponent(companyId)}${path?'/'+path:''}`:nativeBase+'/';
 function notice(text='',error=false){$('status').hidden=!text;$('status').textContent=text;$('status').className=error?'error':'';}
@@ -32,13 +33,14 @@ async function selectCompany(id){if(!companies.some(c=>c.id===id))return;company
 async function refresh(){overview=companyId?await rpc('overview',{p_company:companyId}):{cases:[],batches:[]};if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
 function action(id,label){return `<button id="${id}">${label}</button>`;}
 function render(){notice();$('breadcrumb').textContent='CASES';$('page-actions').innerHTML='';if(!companyId){$('page-title').textContent='Companies';$('content').innerHTML=companies.length?`<div class="company-grid">${companies.map(c=>`<button class="company-card" data-company="${c.id}"><strong>${esc(c.name)}</strong><span class="country">${flag(c.country)} ${esc(c.country)}</span></button>`).join('')}</div>`:'<p class="empty">No companies.</p>';$('content').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));return;}
- const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase)return renderCase(selectedCase);
+ const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase){if(eventReview?.company===companyId&&eventReview?.case===caseId)return renderEvents(selectedCase);return renderCase(selectedCase);}eventReview=null;
  $('page-title').textContent='Cases';if(overview.can_write){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>editCase();}
  $('content').innerHTML=overview.cases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${overview.cases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===(c.selected_scenario_id||c.applied_scenario_id))?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">No cases.</p>';
  $('content').querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>{caseId=b.dataset.case;render()});}
 function statusOptions(current){return [...new Set([...states,current])].filter(Boolean).map(s=>`<option ${s===current?'selected':''}>${esc(s)}</option>`).join('');}
 function renderCase(c){$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">Cases</a> / '+esc(c.name);$('page-actions').innerHTML=action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Edit case')+action('new-scenario','New scenario'):'');$('clear-selection').onclick=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>editCase(c);$('new-scenario').onclick=()=>editScenario(c);}
- $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${esc(s.name)}</td><td>${overview.can_write?`<select data-status="${s.id}" aria-label="Status for ${esc(s.name)}">${statusOptions(s.status||'Proposal')}</select>`:`<span class="state">${esc(s.status||'Proposal')}</span>`}</td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${(c.selected_scenario_id||c.applied_scenario_id)===s.id?'checked':''}></label></td><td><a href="${nativeUrl('accounts')}" target="_blank" rel="noopener" aria-label="Open transactions in Ekwo">${s.entries}</a></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}">Edit</button><button data-copy="${s.id}">Copy</button>`:''}<a class="button" href="${nativeUrl('accounts')}" target="_blank" rel="noopener">Events</a></div></td></tr>`).join('')}</tbody></table></div>`;
+ $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${esc(s.name)}</td><td>${overview.can_write?`<select data-status="${s.id}" aria-label="Status for ${esc(s.name)}">${statusOptions(s.status||'Proposal')}</select>`:`<span class="state">${esc(s.status||'Proposal')}</span>`}</td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${(c.selected_scenario_id||c.applied_scenario_id)===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" aria-label="Events for ${esc(s.name)}">${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}">Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}">Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
+ for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>task(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
  $('back-cases').onclick=e=>{e.preventDefault();caseId=null;render()};
  for(const el of $('content').querySelectorAll('[data-select]'))el.onchange=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:el.dataset.select});await refresh()});
  for(const el of $('content').querySelectorAll('[data-status]'))el.onchange=()=>task(async()=>{const s=c.scenarios.find(s=>s.id===el.dataset.status);await rpc('scenario_save',{p_company:companyId,p_case:c.id,p_scenario:s.id,p_name:s.name,p_status:el.value});await refresh()});
@@ -47,6 +49,21 @@ function renderCase(c){$('page-title').textContent=c.name;$('breadcrumb').innerH
  const owned=new Set(c.scenarios.map(s=>s.batch_id));let changed=true;while(changed){changed=false;for(const b of overview.batches||[])if(owned.has(b.copied_from)&&!owned.has(b.id)){owned.add(b.id);changed=true;}}
  const refs=(overview.batches||[]).filter(b=>b.is_reference&&owned.has(b.id));if(refs.length){const section=document.createElement('section');section.className='references';section.innerHTML='<h2>Reference batches</h2><div class="case-table"><table><thead><tr><th>Reference</th><th>Entries</th><th></th></tr></thead><tbody>'+refs.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+b.entries+'</td><td>'+(overview.can_write?'<button data-reference="'+b.id+'">Copy</button>':'')+'</td></tr>').join('')+'</tbody></table></div>';$('content').append(section);section.querySelectorAll('[data-reference]').forEach(button=>button.onclick=()=>{const b=refs.find(b=>b.id===button.dataset.reference);copyScenario(c,{name:b.name,batch_id:b.id});});}
 
+}
+async function openEvents(c,s){
+ const company=companyId;const entries=await rpc('batch_entries',{p_company:company,p_batch:s.batch_id});
+ if(companyId!==company||caseId!==c.id)return;
+ eventReview={company,case:c.id,scenario:s,entries:entries||[]};renderEvents(c);
+}
+function renderEvents(c){
+ const s=eventReview.scenario;
+ $('page-title').textContent=s.name;
+ $('breadcrumb').innerHTML=`<a href="#cases" id="events-cases">Cases</a> / <a href="#case" id="events-case">${esc(c.name)}</a> / Events`;
+ $('page-actions').innerHTML=`<div class="events-switch" role="group" aria-label="Events presentation"><button id="events-journal" aria-pressed="${eventMode==='journal'}">Journal</button><button id="events-accounts" aria-pressed="${eventMode==='accounts'}">T-accounts</button></div>`;
+ $('content').innerHTML=eventsMarkup(eventReview.entries,eventMode,companies.find(c=>c.id===companyId)?.currency_code||'');
+ $('events-cases').onclick=e=>{e.preventDefault();eventReview=null;caseId=null;render();};
+ $('events-case').onclick=e=>{e.preventDefault();eventReview=null;render();};
+ for(const [id,mode] of [['events-journal','journal'],['events-accounts','accounts']])$(id).onclick=()=>{eventMode=mode;renderEvents(c);$(id).focus();};
 }
 function editor(title,fields,save){$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
 function editCase(c){editor(c?'Edit case':'New case',`<label>Name<input name="name" required value="${esc(c?.name||'')}"></label><label>Notes<textarea name="notes">${esc(c?.notes||'')}</textarea></label>`,async d=>{caseId=await rpc('case_save',{p_company:companyId,p_case:c?.id||null,p_name:d.get('name'),p_notes:d.get('notes')});});}
