@@ -8,7 +8,25 @@ import {nativeIcon} from './icons.js';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const states=['Proposal','Reviewing','Accepted','Applied','Retired'];
 let auth=null;try{auth=JSON.parse(sessionStorage.getItem('ekwo-lustre-session')||'null')}catch{sessionStorage.removeItem('ekwo-lustre-session')}
-let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null,eventReview=null,eventMode='journal';
+let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null,eventReview=null,eventMode='journal',eventLevel='summary';
+let restoringHistory=false;
+function rememberView(){
+ const view={lustreView:true,company:companyId,case:caseId,scenario:eventReview?.company===companyId&&eventReview?.case===caseId?eventReview.scenario.id:null};
+ if(restoringHistory||pendingHistory)return;
+ if(!history.state?.lustreView)history.replaceState(view,'');
+ else if(JSON.stringify(history.state)!==JSON.stringify(view))history.pushState(view,'');
+}
+let pendingHistory=null;
+async function restoreView(view){
+ restoringHistory=true;
+ try{
+  companyId=companies.some(c=>c.id===view.company)?view.company:null;caseId=view.case;eventReview=null;
+  companyPicker();sidebar();await refresh();
+  const c=overview.cases.find(c=>c.id===caseId),s=c?.scenarios?.find(s=>s.id===view.scenario);
+  if(c&&s)await openEvents(c,s);
+ }finally{restoringHistory=false;}
+}
+window.addEventListener('popstate',e=>{if(!auth||!e.state?.lustreView)return;if(busy){pendingHistory=e.state;return;}task(()=>restoreView(e.state));});
 const nativeBase='https://cloud.ekwo.ai';
 const nativeUrl=path=>companyId?`${nativeBase}/c/${encodeURIComponent(companyId)}${path?'/'+path:''}`:nativeBase+'/';
 function notice(text='',error=false){$('status').hidden=!text;$('status').textContent=text;$('status').className=error?'error':'';}
@@ -17,7 +35,7 @@ async function api(path,body,method='POST'){
  const r=await fetch(config.url+path,{method,headers:{apikey:config.publishableKey,Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const text=await r.text(),data=text?JSON.parse(text):null;if(!r.ok)throw Error(data?.message||data?.error_description||'Request failed');return data;
 }
 const rpc=(name,args)=>api('/rest/v1/rpc/lustre_'+name,args);
-async function task(fn){if(busy)return;busy=true;document.body.setAttribute('aria-busy','true');notice();try{await fn()}catch(e){if($('editor').open)$('editor-error').textContent=e.message;else notice(e.message,true)}finally{busy=false;document.body.removeAttribute('aria-busy');}}
+async function task(fn){if(busy)return;busy=true;document.body.setAttribute('aria-busy','true');notice();try{await fn()}catch(e){if($('editor').open)$('editor-error').textContent=e.message;else notice(e.message,true)}finally{busy=false;document.body.removeAttribute('aria-busy');if(pendingHistory){const view=pendingHistory;pendingHistory=null;task(()=>restoreView(view));}}}
 function logout(){auth=null;companyId=null;caseId=null;companies=[];overview={cases:[],batches:[]};sessionStorage.removeItem('ekwo-lustre-session');$('workspace').hidden=true;$('sign-out').hidden=true;$('content').replaceChildren();$('company-options').replaceChildren();$('side-menu').replaceChildren();$('company-name').textContent='Choose a company';$('editor').close();location.replace('sign-in.html');}
 $('sign-out').onclick=logout;
 function flag(code){return /^[A-Z]{2}$/.test(code||'')?String.fromCodePoint(...[...code].map(c=>127397+c.charCodeAt(0))):'';}
@@ -36,7 +54,7 @@ async function start(){companies=await api('/rest/v1/companies?select=id,name,le
 async function selectCompany(id){if(!companies.some(c=>c.id===id))return;companyId=id;caseId=null;sessionStorage.setItem('ekwo-lustre-company:'+auth.user.id,id);closeCompanies();companyPicker();sidebar();await refresh();}
 async function refresh(){if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_snapshot',{p_company:companyId,p_scenario:eventReview.scenario.id});Object.assign(eventReview,snapshot);}overview=companyId?await rpc('overview',{p_company:companyId}):{cases:[],batches:[]};if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
 function action(id,label){return `<button id="${id}">${label}</button>`;}
-function render(){notice();$('breadcrumb').textContent='CASES';$('page-actions').innerHTML='';if(!companyId){$('page-title').textContent='Companies';$('content').innerHTML=companies.length?`<div class="company-grid">${companies.map(c=>`<button class="company-card" data-company="${c.id}"><strong>${esc(c.name)}</strong><span class="country">${flag(c.country)} ${esc(c.country)}</span></button>`).join('')}</div>`:'<p class="empty">No companies.</p>';$('content').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));return;}
+function render(){rememberView();notice();$('breadcrumb').textContent='CASES';$('page-actions').innerHTML='';if(!companyId){$('page-title').textContent='Companies';$('content').innerHTML=companies.length?`<div class="company-grid">${companies.map(c=>`<button class="company-card" data-company="${c.id}"><strong>${esc(c.name)}</strong><span class="country">${flag(c.country)} ${esc(c.country)}</span></button>`).join('')}</div>`:'<p class="empty">No companies.</p>';$('content').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));return;}
  const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase){if(eventReview?.company===companyId&&eventReview?.case===caseId){const current=selectedCase.scenarios.find(s=>s.id===eventReview.scenario.id);if(current){eventReview.scenario=current;return renderEvents(selectedCase);}eventReview=null;}return renderCase(selectedCase);}eventReview=null;
  $('page-title').textContent='Cases';if(overview.can_write){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>editCase();}
  $('content').innerHTML=overview.cases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${overview.cases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===c.selected_scenario_id)?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">No cases.</p>';
@@ -63,15 +81,18 @@ async function openEvents(c,s){
  eventReview={company,case:c.id,scenario:s,...snapshot};renderEvents(c);
 }
 function renderEvents(c){
+ rememberView();
  const s=eventReview.scenario;
  $('page-title').textContent=s.name;
  $('breadcrumb').innerHTML=`<a href="#cases" id="events-cases">Cases</a> / <a href="#case" id="events-case">${esc(c.name)}</a> / Events`;
  const capture=overview.can_write&&overview.active_case_id===c.id&&c.selected_scenario_id===s.id;
- $('page-actions').innerHTML=(capture?action('add-event','Add event')+action('assign-event','Assign existing event'):'')+`<label class="events-switch"><span>Journal</span><input id="events-view" type="range" min="0" max="1" step="1" value="${eventMode==='accounts'?1:0}" aria-label="Events view" aria-valuetext="${eventMode==='accounts'?'T-accounts':'Journal'}"><span>T-accounts</span></label>`;
- $('content').innerHTML=(s.description?`<details class="scenario-description"><summary>Scenario description</summary><div class="description-text">${esc(s.description)}</div></details>`:'')+summaryMarkup(eventReview,eventMode,companies.find(c=>c.id===companyId)?.currency_code||'');
+ $('page-actions').innerHTML=action('events-back','← Scenarios')+(capture?action('add-event','Add event')+action('assign-event','Assign existing event'):'')+`<label class="events-switch"><span>Summary</span><input id="events-level" type="range" min="0" max="1" step="1" value="${eventLevel==='detail'?1:0}" aria-label="Summary or detail" aria-valuetext="${eventLevel==='detail'?'Detail':'Summary'}"><span>Detail</span></label><label class="events-switch"><span>Journal</span><input id="events-view" type="range" min="0" max="1" step="1" value="${eventMode==='accounts'?1:0}" aria-label="Events view" aria-valuetext="${eventMode==='accounts'?'T-accounts':'Journal'}"><span>T-accounts</span></label>`;
+ $('content').innerHTML=(s.description?`<details class="scenario-description"><summary>Scenario description</summary><div class="description-text">${esc(s.description)}</div></details>`:'')+summaryMarkup(eventReview,eventMode,companies.find(c=>c.id===companyId)?.currency_code||'',eventLevel);
+ $('events-back').onclick=()=>task(async()=>{eventReview=null;await refresh();});
  if(capture){$('add-event').onclick=()=>task(()=>addEvent(s));$('assign-event').onclick=()=>assignEvent(s);}
  $('events-cases').onclick=e=>{e.preventDefault();eventReview=null;caseId=null;render();};
  $('events-case').onclick=e=>{e.preventDefault();eventReview=null;task(()=>refresh());};
+ $('events-level').oninput=e=>{eventLevel=e.target.value==='1'?'detail':'summary';renderEvents(c);$('events-level').focus();};
  $('events-view').oninput=e=>{const expanded=$('content').querySelector('details')?.open;eventMode=e.target.value==='1'?'accounts':'journal';renderEvents(c);const details=$('content').querySelector('details');if(details)details.open=!!expanded;$('events-view').focus();};
 }
 async function addEvent(s){
