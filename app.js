@@ -91,7 +91,7 @@ function renderEvents(c){
  if(capture){$('add-event').onclick=()=>task(()=>addEvent(s));$('assign-event').onclick=()=>assignEvent(s);}
  $('events-cases').onclick=e=>{e.preventDefault();eventReview=null;caseId=null;render();};
  $('events-case').onclick=e=>{e.preventDefault();eventReview=null;task(()=>refresh());};
- $('events-level').oninput=e=>{eventLevel=e.target.value==='1'?'detail':'summary';renderEvents(c);$('events-level').focus();};
+ $('events-level').oninput=e=>{eventLevel=e.target.value==='1'?'detail':'summary';if(eventLevel==='detail')eventMode='accounts';renderEvents(c);$('events-level').focus();};
  $('events-view').oninput=e=>{const expanded=$('content').querySelector('details')?.open;eventMode=e.target.value==='1'?'accounts':'journal';renderEvents(c);const details=$('content').querySelector('details');if(details)details.open=!!expanded;$('events-view').focus();};
 }
 async function addEvent(s){
