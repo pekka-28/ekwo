@@ -1,3 +1,6 @@
+import {displayDate} from './format.js';
+import {openEventEditor} from './event-editor.js';
+import {documentHtml} from './case-document.js';
 import {eventsMarkup} from './events-view.js';
 import {nativeIcon} from './icons.js';
 ﻿import {config} from './config.js';
@@ -35,16 +38,18 @@ function action(id,label){return `<button id="${id}">${label}</button>`;}
 function render(){notice();$('breadcrumb').textContent='CASES';$('page-actions').innerHTML='';if(!companyId){$('page-title').textContent='Companies';$('content').innerHTML=companies.length?`<div class="company-grid">${companies.map(c=>`<button class="company-card" data-company="${c.id}"><strong>${esc(c.name)}</strong><span class="country">${flag(c.country)} ${esc(c.country)}</span></button>`).join('')}</div>`:'<p class="empty">No companies.</p>';$('content').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));return;}
  const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase){if(eventReview?.company===companyId&&eventReview?.case===caseId){const current=selectedCase.scenarios.find(s=>s.id===eventReview.scenario.id);if(current){eventReview.scenario=current;return renderEvents(selectedCase);}eventReview=null;}return renderCase(selectedCase);}eventReview=null;
  $('page-title').textContent='Cases';if(overview.can_write){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>editCase();}
- $('content').innerHTML=overview.cases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${overview.cases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===(c.selected_scenario_id||c.applied_scenario_id))?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">No cases.</p>';
+ $('content').innerHTML=overview.cases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${overview.cases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===c.selected_scenario_id)?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">No cases.</p>';
  $('content').querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>{caseId=b.dataset.case;render()});}
 function statusOptions(current){return [...new Set([...states,current])].filter(Boolean).map(s=>`<option ${s===current?'selected':''}>${esc(s)}</option>`).join('');}
-function renderCase(c){$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">Cases</a> / '+esc(c.name);$('page-actions').innerHTML=action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+action('new-scenario','New scenario'):'');$('clear-selection').onclick=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>editCase(c);$('new-scenario').onclick=()=>editScenario(c);}
- $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${esc(s.name)}</td><td>${overview.can_write?`<select data-status="${s.id}" aria-label="Status for ${esc(s.name)}">${statusOptions(s.status||'Proposal')}</select>`:`<span class="state">${esc(s.status||'Proposal')}</span>`}</td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${(c.selected_scenario_id||c.applied_scenario_id)===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" aria-label="Events for ${esc(s.name)}">${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}">Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}">Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
- if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<section class="case-description"><h2>Case description</h2><div class="description-text">${esc(c.notes)}</div></section>`);
+function renderCase(c){$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">Cases</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Case document')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+action('new-scenario','New scenario'):'');$('clear-selection').onclick=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>editCase(c);$('new-scenario').onclick=()=>editScenario(c);}
+ $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${esc(s.name)}</td><td><span class="state">${esc(s.status||'Proposal')}</span></td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${c.selected_scenario_id===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" aria-label="Events for ${esc(s.name)}">${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}">Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}">Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
+ $('case-document').onclick=()=>task(()=>openCaseDocument(c));
+ if(overview.can_write){$('page-actions').insertAdjacentHTML('afterbegin',action('capture-case',overview.active_case_id===c.id?'Stop capture':'Use for capture'));$('capture-case').onclick=()=>task(async()=>{await rpc('capture_case',{p_company:companyId,p_case:overview.active_case_id===c.id?null:c.id});await refresh();});}
+ if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<details class="case-description"><summary>Case description</summary><div class="description-text">${esc(c.notes)}</div></details>`);
+ if(overview.active_case_id===c.id)$('content').insertAdjacentHTML('afterbegin','<p class="capture-state">Active case for capture</p>');
  for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>task(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
  $('back-cases').onclick=e=>{e.preventDefault();caseId=null;render()};
  for(const el of $('content').querySelectorAll('[data-select]'))el.onchange=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:el.dataset.select});await refresh()});
- for(const el of $('content').querySelectorAll('[data-status]'))el.onchange=()=>task(async()=>{const s=c.scenarios.find(s=>s.id===el.dataset.status);await rpc('scenario_save',{p_company:companyId,p_case:c.id,p_scenario:s.id,p_name:s.name,p_status:el.value});await refresh()});
  for(const el of $('content').querySelectorAll('[data-edit]'))el.onclick=()=>editScenario(c,c.scenarios.find(s=>s.id===el.dataset.edit));
  for(const el of $('content').querySelectorAll('[data-copy]'))el.onclick=()=>copyScenario(c,c.scenarios.find(s=>s.id===el.dataset.copy));
  const owned=new Set(c.scenarios.map(s=>s.batch_id));let changed=true;while(changed){changed=false;for(const b of overview.batches||[])if(owned.has(b.copied_from)&&!owned.has(b.id)){owned.add(b.id);changed=true;}}
@@ -60,12 +65,45 @@ function renderEvents(c){
  const s=eventReview.scenario;
  $('page-title').textContent=s.name;
  $('breadcrumb').innerHTML=`<a href="#cases" id="events-cases">Cases</a> / <a href="#case" id="events-case">${esc(c.name)}</a> / Events`;
- $('page-actions').innerHTML=(overview.can_write?action('event-details','Scenario details'):'')+`<div class="events-switch" role="group" aria-label="Events presentation"><button id="events-journal" aria-pressed="${eventMode==='journal'}">Journal</button><button id="events-accounts" aria-pressed="${eventMode==='accounts'}">T-accounts</button></div>`;
- $('content').innerHTML=(s.description?`<section class="scenario-description"><h2>Scenario description</h2><div class="description-text">${esc(s.description)}</div></section>`:'')+eventsMarkup(eventReview.entries,eventMode,companies.find(c=>c.id===companyId)?.currency_code||'');
- if(overview.can_write)$('event-details').onclick=()=>editScenario(c,s);
+ const capture=overview.can_write&&overview.active_case_id===c.id&&c.selected_scenario_id===s.id;
+ $('page-actions').innerHTML=(capture?action('add-event','Add event')+action('assign-event','Assign existing event'):'')+`<label class="events-switch"><span>Journal</span><input id="events-view" type="range" min="0" max="1" step="1" value="${eventMode==='accounts'?1:0}" aria-label="Events view" aria-valuetext="${eventMode==='accounts'?'T-accounts':'Journal'}"><span>T-accounts</span></label>`;
+ $('content').innerHTML=(s.description?`<details class="scenario-description"><summary>Scenario description</summary><div class="description-text">${esc(s.description)}</div></details>`:'')+eventsMarkup(eventReview.entries,eventMode,companies.find(c=>c.id===companyId)?.currency_code||'');
+ if(capture){$('add-event').onclick=()=>task(()=>addEvent(s));$('assign-event').onclick=()=>assignEvent(s);}
  $('events-cases').onclick=e=>{e.preventDefault();eventReview=null;caseId=null;render();};
  $('events-case').onclick=e=>{e.preventDefault();eventReview=null;render();};
- for(const [id,mode] of [['events-journal','journal'],['events-accounts','accounts']])$(id).onclick=()=>{eventMode=mode;renderEvents(c);$(id).focus();};
+ $('events-view').oninput=e=>{const expanded=$('content').querySelector('details')?.open;eventMode=e.target.value==='1'?'accounts':'journal';renderEvents(c);const details=$('content').querySelector('details');if(details)details.open=!!expanded;$('events-view').focus();};
+}
+async function addEvent(s){
+ const company=companyId;const accounts=await api('/rest/v1/accounts?select=id,code,name&company_id=eq.'+encodeURIComponent(company)+'&order=code',null,'GET');
+ openEventEditor({editor,accounts,entries:eventReview.entries,save:async data=>{
+  await rpc('event_create',{p_company:company,p_scenario:s.id,...data});
+  eventReview.entries=await rpc('batch_entries',{p_company:company,p_batch:s.batch_id});
+ }});
+}
+function assignEvent(s){
+ const company=companyId;let reviewed=null,entry=null;
+ editor('Assign existing event',`<p>Destination: ${esc(s.name)}</p><label>Reference or description<input id="assignment-query" autocomplete="off"></label><button type="button" id="assignment-search">Find events</button><div id="assignment-results"></div><div id="assignment-preview"></div>`,async()=>{
+  if(!reviewed||!entry)throw Error('Find an event and review its assignment first.');
+  await rpc('assign_event',{p_company:company,p_scenario:s.id,p_entry:entry,p_expected_batch:reviewed.source_batch,p_expected_ids:reviewed.ids});
+  eventReview.entries=await rpc('batch_entries',{p_company:company,p_batch:s.batch_id});
+ });
+ $('assignment-search').onclick=()=>task(async()=>{
+  reviewed=null;entry=null;$('assignment-preview').textContent='';
+  const rows=await rpc('find_events',{p_company:company,p_query:$('assignment-query').value});
+  $('assignment-results').innerHTML=rows.length?`<div class="event-scroll"><table><thead><tr><th></th><th>Date</th><th>Event</th><th>Batch</th><th>State</th></tr></thead><tbody>${rows.map(e=>`<tr><td><input type="radio" name="existing-event" data-existing="${esc(e.id)}" aria-label="Review ${esc(e.description)}"></td><td>${esc(displayDate(e.entry_date))}</td><td>${esc(e.description)}<br><small>${esc(e.reference)}</small></td><td>${esc(e.batch_name||'Unbatched')}</td><td>${esc(e.state)}</td></tr>`).join('')}</tbody></table></div>`:'<p>No matching events.</p>';
+  for(const el of $('assignment-results').querySelectorAll('[data-existing]'))el.onchange=()=>task(async()=>{
+   reviewed=null;entry=null;$('assignment-preview').textContent='';
+   const preview=await rpc('assignment_preview',{p_company:company,p_entry:el.dataset.existing});
+   reviewed=preview;entry=el.dataset.existing;
+   $('assignment-preview').innerHTML=`<p>${preview.ids.length} event${preview.ids.length===1?'':'s'} will move to ${esc(s.name)}:</p><ul>${preview.events.map(e=>`<li>${esc(e.date)} · ${esc(e.description)}</li>`).join('')}</ul>`;
+  });
+ });
+}
+async function openCaseDocument(c){
+ const [data,response]=await Promise.all([rpc('case_document',{p_company:companyId,p_case:c.id}),fetch('case-document.css')]);
+ if(!data)throw Error('Case not found');if(!response.ok)throw Error('Document stylesheet unavailable');
+ const html=documentHtml(data,await response.text()),url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download=data.case.name.replace(/[^a-z0-9 -]/gi,'').trim().slice(0,80)+'.html';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
 function editor(title,fields,save){$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
 function editCase(c){editor(c?'Case details':'New case',`<label>Name<input name="name" required value="${esc(c?.name||'')}"></label><label>Case description<textarea name="notes" rows="14">${esc(c?.notes||'')}</textarea></label>`,async d=>{caseId=await rpc('case_save',{p_company:companyId,p_case:c?.id||null,p_name:d.get('name'),p_notes:d.get('notes')});});}

@@ -1,0 +1,27 @@
+<article class="case-document">
+  <header><p>{{company}}</p><h1>{{title}}</h1><p>{{date}}</p></header>
+  <section><h2>Justification</h2><div class="description-text">{{justification}}</div></section>
+  <section><h2>Alternatives considered</h2>
+    <p><em>Table {{alternativesTable}}</em> identifies the alternatives considered in this case. Each alternative is described below.</p>
+    <div class="event-scroll"><table><caption>Table {{alternativesTable}} Scenarios</caption>
+      <thead><tr><th>Scenario</th><th>Status</th><th>Entries</th></tr></thead>
+      <tbody>{{#alternatives}}<tr><td>{{name}}</td><td>{{status}}</td><td class="event-number">{{entryCount}}</td></tr>{{/alternatives}}</tbody>
+    </table></div>
+  </section>
+  {{#scenarios}}<section><h2>{{name}}</h2><div class="description-text">{{description}}</div>
+    {{#empty}}<p>This scenario has no incremental entries.</p>{{/empty}}
+    {{#journals}}{{> journal}}{{/journals}}
+    {{#accounts}}{{> t-account}}{{/accounts}}
+  </section>{{/scenarios}}
+  <section><h2>Summary impact</h2>
+    {{#summary}}
+    <p>{{name}} is the selected scenario, with status {{status}}. <em>Table {{table}}</em> compares its account movements with the posted contribution of this case already in the baseline. Shared history is unchanged. Amounts are debit-positive; negative amounts are credit movements.</p>
+    <div class="event-scroll"><table><caption>Table {{table}} Incremental account impact ({{currency}})</caption>
+      <thead><tr><th>Account</th><th>Name</th><th class="event-number">Baseline contribution</th><th class="event-number">Scenario contribution</th><th class="event-number">Change</th></tr></thead>
+      <tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{baseline}}</td><td class="event-number">{{chosen}}</td><td class="event-number">{{change}}</td></tr>{{/rows}}</tbody>
+    </table></div>
+    {{#empty}}<p>This scenario introduces no account movements.</p>{{/empty}}
+    {{/summary}}
+    {{^summary}}<p>No scenario is selected. No calculation is applicable.</p>{{/summary}}
+  </section>
+</article>

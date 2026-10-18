@@ -1,7 +1,7 @@
 {
   "title": "Ekwo",
   "csp": "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; connect-src 'self' https://adwpwvxulsksntngchxf.supabase.co; font-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'self'; form-action 'self'\">",
-  "styles": "<link rel=\"stylesheet\" href=\"cases.css\">",
+  "styles": "<link rel=\"stylesheet\" href=\"cases.css\"><link rel=\"stylesheet\" href=\"case-document.css\">",
   "accountLinks": "<a href=\"guide.html\">User guide</a>",
   "scripts": "<script type=\"module\" src=\"app.js\"></script>",
   "loginScripts": "<script type=\"module\" src=\"sign-in.js\"></script>",

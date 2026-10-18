@@ -1,3 +1,4 @@
+import {displayDate} from './format.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function minorUnits(value){
   const match=String(value??0).match(/^(-?)(\d+)(?:\.(\d{1,2})0*)?$/);
@@ -27,20 +28,22 @@ export function prepareEvents(entries){
   }
   return {journals,accounts:[...accounts.values()].sort((a,b)=>compare(a.code,b.code)||compare(a.id,b.id)),debit,credit};
 }
-function details(entry,line){return `<span class="event-date">${esc(entry.entry_date)}</span><span>${esc(entry.description)}${line?.description?`<br>${esc(line.description)}`:''}</span><small>${esc(entry.reference||entry.id)} · ${esc(entry.state)}</small>`;}
 function amountCell(value){return `<td class="event-number">${value===0n?'':money(value)}</td>`;}
 export function journalMarkup(model){
   return model.journals.map(entry=>{
     let debit=0n,credit=0n;
-    const rows=entry.lines.map(line=>{const dr=minorUnits(line.debit),cr=minorUnits(line.credit);debit+=dr;credit+=cr;return `<tr><td>${esc(line.account_code)}</td><td>${esc(line.account_name)}</td><td>${esc(line.description)}</td>${amountCell(dr)}${amountCell(cr)}</tr>`;}).join('');
-    return `<article class="event-journal"><header>${details(entry)}</header><div class="event-scroll"><table><thead><tr><th>Account</th><th>Name</th><th>Description</th><th class="event-number">Debit</th><th class="event-number">Credit</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3">Total</th>${amountCell(debit)}${amountCell(credit)}</tr></tfoot></table></div></article>`;
+    const rows=entry.lines.map(line=>{const dr=minorUnits(line.debit),cr=minorUnits(line.credit);debit+=dr;credit+=cr;return `<tr><td>${esc(line.account_code)}</td><td>${esc(line.account_name)}</td><td>${esc(line.name||line.description)}</td>${amountCell(dr)}${amountCell(cr)}</tr>`;}).join('');
+    return `<details class="event-journal"><summary><span>${esc(displayDate(entry.entry_date))} · ${esc(entry.description)}${entry.reference?` <small>${esc(entry.reference)}</small>`:''}</span><span class="event-number">${money(debit)}</span></summary><header><span class="state">${esc(entry.state)}</span></header><div class="event-scroll"><table><thead><tr><th>Account</th><th>Name</th><th>Description</th><th class="event-number">Debit</th><th class="event-number">Credit</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3">Total</th>${amountCell(debit)}${amountCell(credit)}</tr></tfoot></table></div></details>`;
   }).join('');
 }
-function side(events,total){return `<div class="t-side">${events.map(({entry,line,amount})=>`<div class="t-line"><div>${details(entry,line)}</div><span class="event-number">${money(amount)}</span></div>`).join('')}<div class="t-total"><span>Total</span><span class="event-number">${money(total)}</span></div></div>`;}
+function side(events,total,carried=0n){return `<div class="t-side">${events.map(({entry,line,amount})=>`<details class="t-line"><summary><span>${esc(entry.description)}${entry.reference?` <small>${esc(entry.reference)}</small>`:''}</span><span class="event-number">${money(amount)}</span></summary><div class="t-event-detail"><span>${esc(displayDate(entry.entry_date))} · ${esc(entry.state)}</span>${line.name||line.description?`<p>${esc(line.name||line.description)}</p>`:''}</div></details>`).join('')}${carried?`<div class="t-carry"><span>Balance c/f</span><span class="event-number">${money(carried)}</span></div>`:''}<div class="t-total"><span>Total</span><span class="event-number">${money(total)}</span></div></div>`;}
 export function accountsMarkup(model){
-  return model.accounts.map(account=>`<article class="t-account"><h2>${esc(account.code)} · ${esc(account.name)}</h2><div class="t-head"><span>Debit</span><span>Credit</span></div><div class="t-sides">${side(account.debits,account.debit)}${side(account.credits,account.credit)}</div><p class="t-movement">Net movement: ${money(account.debit>=account.credit?account.debit-account.credit:account.credit-account.debit)} ${account.debit>=account.credit?'Dr':'Cr'}</p></article>`).join('');
+  return model.accounts.map(account=>{
+    const total=account.debit>account.credit?account.debit:account.credit;
+    return `<article class="t-account"><h2>${esc(account.code)} · ${esc(account.name)}</h2><div class="t-head"><span>Debit</span><span>Credit</span></div><div class="t-sides">${side(account.debits,total,total-account.debit)}${side(account.credits,total,total-account.credit)}</div></article>`;
+  }).join('');
 }
 export function eventsMarkup(entries,mode,currency){
   const model=prepareEvents(entries);
-  return `<section class="events-scope" aria-label="Scenario events"><div class="events-summary"><strong>Scenario only</strong><span>${model.journals.length} entries · ${esc(currency)}</span><span>Debit ${money(model.debit)} · Credit ${money(model.credit)}</span></div>${model.journals.length?(mode==='accounts'?accountsMarkup(model):journalMarkup(model)):'<p class="empty">No events in this scenario.</p>'}</section>`;
+  return `<section class="events-scope" aria-label="Scenario events"><div class="events-summary"><span>${model.journals.length} entries · ${esc(currency)}</span><span>Debit ${money(model.debit)} · Credit ${money(model.credit)}</span></div>${model.journals.length?(mode==='accounts'?accountsMarkup(model):journalMarkup(model)):'<p class="empty">No events in this scenario.</p>'}</section>`;
 }
