@@ -8,5 +8,5 @@ export function displayDate(value){
 export const displayEntryDate=entry=>entry.display_date??displayDate(entry.entry_date);
 export function summaryEntry(entry){
  const match=String(entry.reference||'').match(/ \| (\d{4})(\d{2})(\d{2})-(\d{4})(\d{2})(\d{2})$/);
- return {...entry,display_date:match?`${displayDate(`${match[1]}-${match[2]}-${match[3]}`)} – ${displayDate(`${match[4]}-${match[5]}-${match[6]}`)}`:displayDate(entry.entry_date)};
+ return {...entry,display_date:match?`${displayDate(`${match[1]}-${match[2]}-${match[3]}`)}–${displayDate(`${match[4]}-${match[5]}-${match[6]}`)}`:displayDate(entry.entry_date)};
 }

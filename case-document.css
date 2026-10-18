@@ -21,3 +21,7 @@
 @media print{body{margin:0;background:white}#sidebar,#mobile-header,#menu-backdrop,.page-heading,#breadcrumb,#status,.document-controls{display:none!important}#page-content{padding:0!important}.case-document{padding:0;max-width:none;font-size:11pt}.case-document h2,.case-document caption{break-after:avoid}.case-document tr{break-inside:avoid}.case-document .event-scroll{overflow:visible}@page{size:A4;margin:18mm}}
 
 .case-document .t-line{border-bottom:0}.case-document .t-line small,.case-document .event-date{display:inline}.case-document .event-journal header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}.case-document .t-carry{display:flex;justify-content:space-between;padding:8px;font-size:13px}
+
+.case-document .report-brand{display:flex;align-items:center;gap:24px}.report-brand img{display:block;max-width:180px;max-height:90px;object-fit:contain}.report-brand.logo-right{flex-direction:row-reverse;justify-content:space-between}.report-brand h1{color:var(--report-accent,inherit)}.report-brand .brand-text{min-width:0;overflow-wrap:anywhere}
+
+.case-document .report-brand[style]{border-bottom-color:var(--report-accent)}

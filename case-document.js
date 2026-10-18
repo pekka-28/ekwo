@@ -1,7 +1,7 @@
 import {displayEntryDate,summaryEntry} from './format.js';
 import Mustache from './vendor/mustache.mjs';
 import {prepareEvents,minorUnits,money,transactionTooltip} from './events-view.js';
-export const reportTemplateNames=['case','journal','t-account','event','shell','wrapper-style'];
+export const reportTemplateNames=['case','journal','t-account','event','shell','wrapper-style','branding'];
 export function impactRows(data,id){
  const chosen=data.scenarios.find(s=>s.id===id);if(!chosen)return [];
  const applied=data.scenarios.find(s=>s.id===data.case.applied_scenario_id),actual=(applied?.entries||[]).filter(e=>e.state==='posted');
@@ -16,7 +16,7 @@ export function reportModel(data){
  const options=JSON.parse(data.templates.options||'{"transactions":"none"}'),mode=options.transactions;
  if(!['none','journal','accounts'].includes(mode))throw Error('Unknown report transaction presentation');
  let table=1,figure=0;
- const model={company:data.company.legal_name||data.company.name,title:data.case.name,currency:data.company.currency_code,
+ const model={branding:{logo:/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(data.company.report_logo_data||'')?data.company.report_logo_data:null,position:data.company.invoice_logo_position==='right'?'right':'left',accent:/^#[0-9a-f]{6}$/i.test(data.company.invoice_accent_color||'')?data.company.invoice_accent_color:null},company:data.company.legal_name||data.company.name,title:data.case.name,currency:data.company.currency_code,
  date:new Intl.DateTimeFormat('en-ZA',{day:'numeric',month:'long',year:'numeric',timeZone:'Africa/Johannesburg'}).format(new Date(data.generated_at)),
  justification:data.case.notes||'No case justification recorded.',alternativesTable:table,alternatives:data.scenarios.map(s=>({name:s.name,status:s.status,entryCount:s.entries.length})),scenarios:[]};
  for(const s of data.scenarios){

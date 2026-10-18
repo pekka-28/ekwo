@@ -1,3 +1,4 @@
+import {reportLogo} from './report-branding.js';
 import {scenarioName,canReview,summaryMarkup} from './scenario-summary.js';
 import {displayDate} from './format.js';
 import {openEventEditor} from './event-editor.js';
@@ -126,6 +127,7 @@ function assignEvent(s){
 async function openCaseDocument(c){
  const [data,response]=await Promise.all([rpc('case_document',{p_company:companyId,p_case:c.id}),fetch('case-document.css')]);
  if(!data)throw Error('Case not found');if(!response.ok)throw Error('Document stylesheet unavailable');
+ const branding=await reportLogo(data.company,{project:config.url,token:auth.access_token,key:config.publishableKey});data.company.report_logo_data=branding.logo;if(branding.warning)notice(branding.warning);
  const html=documentHtml(data,await response.text()),url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
  const link=document.createElement('a');link.href=url;link.download=data.case.name.replace(/[^a-z0-9 -]/gi,'').trim().slice(0,80)+'.html';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
