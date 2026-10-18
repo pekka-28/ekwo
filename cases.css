@@ -17,7 +17,11 @@ button,.button{cursor:pointer}a{color:var(--color-brand-deep)}button:disabled{op
 .selection{display:flex;align-items:center;gap:8px;letter-spacing:0;font-size:13px}
 .selection input{width:16px;height:16px;accent-color:var(--blue)}
 .case-notes{white-space:pre-wrap;color:var(--muted);margin:0 0 24px;max-width:750px}
-#editor{max-width:560px}
+#editor{max-width:1000px;width:calc(100% - 40px)}
+#editor textarea{min-height:320px;line-height:1.6}
+.description-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}
+.case-description,.scenario-description{margin-bottom:28px;max-width:1000px}
+.case-description h2,.scenario-description h2{font-family:var(--font-serif);font-size:22px;margin-bottom:12px}
 #editor-fields label{display:grid;margin:18px 0;gap:8px;letter-spacing:0;font-size:13px}
 textarea{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:11px;padding:10px;resize:vertical;min-height:110px}
 .form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
