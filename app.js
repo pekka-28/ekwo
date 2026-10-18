@@ -2,7 +2,7 @@ import {reportLogo} from './report-branding.js';
 import {scenarioName,canReview,summaryMarkup} from './scenario-summary.js';
 import {displayDate} from './format.js';
 import {openEventEditor} from './event-editor.js';
-import {documentHtml} from './case-document.js?v=case-presentation-v3';
+import {documentHtml} from './case-document.js?v=complete-report-v4';
 import {eventsMarkup} from './events-view.js';
 import {nativeIcon} from './icons.js';
 ﻿import {config} from './config.js';
@@ -131,7 +131,7 @@ function assignEvent(s){
  });
 }
 async function openCaseDocument(c){
- const [data,response]=await Promise.all([rpc('report_create',{p_company:companyId,p_case:c.id,p_renderer:'case-presentation-v3'}),fetch('case-document.css',{cache:'reload'})]);
+ const [data,response]=await Promise.all([rpc('report_create',{p_company:companyId,p_case:c.id,p_renderer:'complete-report-v4'}),fetch('case-document.css',{cache:'reload'})]);
  if(!data)throw Error('Case not found');if(!response.ok)throw Error('Document stylesheet unavailable');
  const branding=await reportLogo(data.company,{project:config.url,token:auth.access_token,key:config.publishableKey});data.company.report_logo_data=branding.logo;if(branding.warning)notice(branding.warning);
  const html=documentHtml(data,await response.text());await rpc('report_finish',{p_report:data.report_id,p_html:html});const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));

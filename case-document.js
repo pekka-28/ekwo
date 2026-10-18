@@ -16,7 +16,7 @@ function transactionData(entries,name,table){
  const prepared=prepareEvents(entries),journals=prepared.journals.map(entry=>({
   ...eventData({entry}),lines:entry.lines.map((l,i)=>({code:l.account_code,name:l.account_name,description:l.name||l.description,debit:amount(minorUnits(l.debit)),credit:amount(minorUnits(l.credit)),eventDate:i===0?displayEntryDate(entry):'',eventDescription:i===0?entry.description:'',eventReference:i===0?(entry.reference||''):''}))
  }));
- const accounts=prepared.accounts.map(a=>({code:a.code,name:a.name,debits:a.debits.map(eventData),credits:a.credits.map(eventData),debit:money(a.debit>a.credit?a.debit:a.credit),credit:money(a.debit>a.credit?a.debit:a.credit),debitCarry:a.credit>a.debit?money(a.credit-a.debit):'',creditCarry:a.debit>a.credit?money(a.debit-a.credit):'',debitMovement:money(a.debit),creditMovement:money(a.credit),change:(a.debit-a.credit>=0n?'+':'')+money(a.debit-a.credit)}));
+ const accounts=prepared.accounts.map(a=>{let balance=0n;const movements=prepared.journals.flatMap(entry=>entry.lines.filter(l=>l.account_id===a.id).map(line=>{const dr=minorUnits(line.debit),cr=minorUnits(line.credit);balance+=dr-cr;return {...eventData({entry,line}),debit:amount(dr),credit:amount(cr),balance:(balance>=0n?'+':'')+money(balance)};}));return {movements,code:a.code,name:a.name,debits:a.debits.map(eventData),credits:a.credits.map(eventData),debit:money(a.debit>a.credit?a.debit:a.credit),credit:money(a.debit>a.credit?a.debit:a.credit),debitCarry:a.credit>a.debit?money(a.credit-a.debit):'',creditCarry:a.debit>a.credit?money(a.debit-a.credit):'',debitMovement:money(a.debit),creditMovement:money(a.credit),change:(a.debit-a.credit>=0n?'+':'')+money(a.debit-a.credit)};});
  return {name,table,entries:journals,accounts,debit:money(prepared.debit),credit:money(prepared.credit),empty:!journals.length};
 }
 export function reportModel(data){
@@ -24,7 +24,7 @@ export function reportModel(data){
  if(!['none','journal','accounts','chart'].includes(mode)||!['summary','detail'].includes(level))throw Error('Unknown report presentation');
  const selected=data.scenarios.find(s=>s.id===data.case.selected_scenario_id),alternatives=data.scenarios.filter(s=>s.id!==data.case.applied_scenario_id);
  let table=1;
- const outcome=s=>{const rows=impactRows(data,s.id).filter(r=>r.change!==0n);return {name:s.name,status:s.status,isSelected:s.id===selected?.id,table:++table,empty:!rows.length,health:s.health?.status||'Unchecked',rows:rows.map(r=>({code:r.code,name:r.name,debit:r.change>0n?money(r.change):'',credit:r.change<0n?money(-r.change):''}))};};
+ const outcome=s=>{const rows=impactRows(data,s.id).filter(r=>r.change!==0n);return {name:s.name,description:s.description,status:s.status,isSelected:s.id===selected?.id,table:++table,empty:!rows.length,health:s.health?.status||'Unchecked',rows:rows.map(r=>({code:r.code,name:r.name,debit:r.change>0n?money(r.change):'',credit:r.change<0n?money(-r.change):''}))};};
  const summary=selected&&mode==='none'?outcome(selected):undefined;
  const transactionTable=selected&&mode!=='none'&&mode!=='accounts'?++table:null;
  const model={company:data.company.legal_name||data.company.name,title:data.case.name,currency:data.company.currency_code,

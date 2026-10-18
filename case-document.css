@@ -27,3 +27,5 @@
 .case-document .report-brand[style]{border-bottom-color:var(--report-accent)}
 
 .case-document .report-caption{font-style:italic;margin:16px 0 8px;break-after:avoid}.case-document .report-journal td{overflow-wrap:anywhere}.case-document .report-journal tbody+tbody tr:first-child td{border-top:2px solid #cbd1dc}.case-document .report-journal thead{display:table-header-group}
+
+.case-document .report-account-detail thead{display:table-header-group}.case-document .report-account-detail .account-heading{break-after:avoid}.case-document .report-account-detail td{overflow-wrap:anywhere}.case-document h3{break-after:avoid}
