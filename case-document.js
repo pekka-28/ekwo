@@ -24,17 +24,17 @@ export function reportModel(data){
  if(!['none','journal','accounts','chart'].includes(mode)||!['summary','detail'].includes(level))throw Error('Unknown report presentation');
  const selected=data.scenarios.find(s=>s.id===data.case.selected_scenario_id),alternatives=data.scenarios.filter(s=>s.id!==data.case.applied_scenario_id);
  let table=1;
- const outcome=s=>{const rows=impactRows(data,s.id).filter(r=>r.change!==0n);return {name:s.name,status:s.status,isSelected:s.id===selected?.id,table:rows.length?++table:null,empty:!rows.length,health:s.health?.status||'Unchecked',rows:rows.map(r=>({code:r.code,name:r.name,debit:r.change>0n?money(r.change):'',credit:r.change<0n?money(-r.change):''}))};};
- const summary=selected?outcome(selected):undefined;
- const transactionTable=selected&&mode!=='none'&&selected.entries.length&&mode!=='accounts'?++table:null;
+ const outcome=s=>{const rows=impactRows(data,s.id).filter(r=>r.change!==0n);return {name:s.name,status:s.status,isSelected:s.id===selected?.id,table:++table,empty:!rows.length,health:s.health?.status||'Unchecked',rows:rows.map(r=>({code:r.code,name:r.name,debit:r.change>0n?money(r.change):'',credit:r.change<0n?money(-r.change):''}))};};
+ const summary=selected&&mode==='none'?outcome(selected):undefined;
+ const transactionTable=selected&&mode!=='none'&&mode!=='accounts'?++table:null;
  const model={company:data.company.legal_name||data.company.name,title:data.case.name,currency:data.company.currency_code,
  branding:{logo:/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(data.company.report_logo_data||'')?data.company.report_logo_data:null,position:data.company.invoice_logo_position==='right'?'right':'left',accent:/^#[0-9a-f]{6}$/i.test(data.company.invoice_accent_color||'')?data.company.invoice_accent_color:null},
  date:new Intl.DateTimeFormat('en-ZA',{day:'numeric',month:'long',year:'numeric',timeZone:'Africa/Johannesburg'}).format(new Date(data.generated_at)),
  justification:data.case.notes||'No case justification recorded.',alternativesTable:1,alternatives:alternatives.map(s=>({name:s.name,status:s.status,entryCount:(s.summary_entries?.length?s.summary_entries.length+'/':'')+s.entries.length})),
- summary,outcomes:alternatives.filter(s=>s.id!==selected?.id).map(outcome),scenarios:[],reportId:data.report_id,level,mode,
+ hasSelected:!!selected,summary,outcomes:alternatives.filter(s=>s.id!==selected?.id).map(outcome),scenarios:[],reportId:data.report_id,level,mode,
  showSummary:level==='summary',showDetail:level==='detail',showJournal:mode==='journal',showTAccounts:mode==='accounts',showAccounts:mode==='chart',showTransactions:mode!=='none',
- tables:transactionTable?[{number:transactionTable,name:selected.name}]:[],figures:selected&&mode==='accounts'&&selected.entries.length?[{number:1,name:selected.name}]:[]};
- if(selected)model.scenarios.push({name:selected.name,description:selected.description||'No scenario description recorded.',health:selected.health?.status||'Unchecked',findings:(selected.health?.issues||[]).map(i=>({text:i.message||i.code.replaceAll('_',' '),entry:i.entry_id})),
+ tables:transactionTable?[{number:transactionTable,name:selected.name}]:[],fragments:selected&&mode==='accounts'?[{number:1,name:selected.name}]:[]};
+ if(selected)model.scenarios.push({name:selected.name,status:selected.status,table:transactionTable,fragment:mode==='accounts'?1:null,description:selected.description||'No scenario description recorded.',health:selected.health?.status||'Unchecked',findings:(selected.health?.issues||[]).map(i=>({text:i.message||i.code.replaceAll('_',' '),entry:i.entry_id})),
  summaryTransactions:transactionData(selected.summary_entries?.length?selected.summary_entries.map(summaryEntry):selected.entries,selected.name,transactionTable),
  detailTransactions:transactionData(selected.entries,selected.name,transactionTable)});
  model.context=(data.projection_context||[]).map(x=>({name:x.case.name,scenario:x.scenario.name,selected:x.selected?'Selected':'Calculation assumption (not selected)',budget:x.budget?.name||x.budget?.code||x.scenario.source_budget_id,start:displayDate(x.scenario.forecast_start),end:displayDate(x.scenario.forecast_end),cutoff:displayDate(x.scenario.forecast_actual_through),hash:x.scenario.forecast_source_hash}));
