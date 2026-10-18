@@ -1,38 +1,25 @@
 <article class="case-document">
   {{> branding}}
   <section><h2>Justification</h2><div class="description-text">{{justification}}</div></section>
-  <section><h2>Alternatives considered</h2>
-    <p><em>Table {{alternativesTable}}</em> identifies the alternatives considered in this case. Each alternative is described below.</p>
-    <div class="event-scroll"><table><caption>Table {{alternativesTable}} Scenarios</caption>
-      <thead><tr><th>Scenario</th><th>Status</th><th>Entries</th></tr></thead>
-      <tbody>{{#alternatives}}<tr><td>{{name}}</td><td>{{status}}</td><td class="event-number">{{entryCount}}</td></tr>{{/alternatives}}</tbody>
-    </table></div>
+  <section><h2>Report basis</h2>
+    {{#reportId}}<p>Report {{reportId}}. The report snapshot retains the scenario entries, forecast inputs, calculation workings and presentation settings used for this document. Reported alternatives must be copied before editing.</p>{{/reportId}}
+    <p>Outcomes show the net change from the separate posted Applied contribution, including dependent entries. Shared history and forecast movements are excluded from these incremental tables.</p>
+    {{#context}}<p>{{name}}: {{scenario}}. {{selected}}.{{#budget}} Source budget: {{budget}}.{{/budget}}{{#start}} Coverage: {{start}}–{{end}}; actuals through {{cutoff}}.{{/start}}{{#hash}} Source fingerprint: {{hash}}.{{/hash}}</p>{{/context}}
+    {{#contextMissing}}<p>No companion forecast or case is included in this report context.</p>{{/contextMissing}}
   </section>
-  {{#scenarios}}<section><h2>{{name}}</h2><p>Health: {{health}}</p>{{#findings}}<p>{{text}} {{entry}}</p>{{/findings}}<div class="description-text">{{description}}</div>
-    {{#empty}}<p>This scenario has no incremental entries.</p>{{/empty}}
-    {{#journals}}{{> journal}}{{/journals}}
-    {{#accounts}}{{> t-account}}{{/accounts}}
-    {{#detailJournals}}{{> journal}}{{/detailJournals}}
-  </section>{{/scenarios}}
-  <section><h2>Summary impact</h2>
-    {{#summary}}
-    <p>{{name}} is the selected scenario, with status {{status}}. <em>Table {{table}}</em> compares its account movements with the posted contribution of this case already in the baseline. Shared history is unchanged. Amounts are debit-positive; negative amounts are credit movements.</p>
-    <div class="event-scroll"><table><caption>Table {{table}} Incremental account impact ({{currency}})</caption>
-      <thead><tr><th>Account</th><th>Name</th><th class="event-number">Baseline contribution</th><th class="event-number">Scenario contribution</th><th class="event-number">Change</th></tr></thead>
-      <tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{baseline}}</td><td class="event-number">{{chosen}}</td><td class="event-number">{{change}}</td></tr>{{/rows}}</tbody>
-    </table></div>
-    {{#empty}}<p>This scenario introduces no account movements.</p>{{/empty}}
-    {{/summary}}
-    {{^summary}}<p>No scenario is selected. The alternatives below are compared with the Applied contribution.</p>{{/summary}}
-    {{#outcomes}}
-    <details class="outcome"><summary>{{name}} · {{status}}</summary>
-      <p>{{^empty}}<em>Table {{table}}</em> shows the net change from the posted Applied contribution, including dependent entries. {{/empty}}Health: {{health}}.</p>
-      {{#empty}}<p>No change to the Applied contribution.</p>{{/empty}}
-      {{^empty}}<table><caption>Table {{table}} {{name}} outcome ({{currency}})</caption>
-        <thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead>
-        <tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody>
-      </table>{{/empty}}
-    </details>
-    {{/outcomes}}
+  <section><h2>Alternatives considered</h2>
+    <p><em>Table {{alternativesTable}}</em> identifies the alternatives. The separate Applied scenario records the contribution already in the baseline; it is not an alternative.</p>
+    {{#summary}}<p>{{name}} is selected, with status {{status}}. <em>Table {{table}}</em> shows its incremental account impact.</p>{{/summary}}
+    {{^summary}}<p>No scenario is selected. The alternatives are compared with the Applied contribution.</p>{{/summary}}
+    {{#scenarios}}<h2>{{name}}</h2><div class="description-text">{{description}}</div><p>Health: {{health}}. Transactions use the {{level}} presentation.</p>{{#findings}}<p>{{text}} {{entry}}</p>{{/findings}}{{/scenarios}}
+    {{#outcomes}}<p>{{name}}: {{status}}.{{#empty}} No change to the Applied contribution.{{/empty}}{{^empty}} <em>Table {{table}}</em> gives its supporting outcome.{{/empty}} Health: {{health}}.</p>{{/outcomes}}
+    {{#tables}}<p><em>Table {{number}}</em> records {{name}} on {{date}}.</p>{{/tables}}
+    {{#figures}}<p><em>Figure {{number}}</em> shows the selected movements in {{name}}.</p>{{/figures}}
+  </section>
+  <section class="report-tables">
+    <table><caption>Table {{alternativesTable}} Scenarios</caption><thead><tr><th>Scenario</th><th>Status</th><th>Entries</th></tr></thead><tbody>{{#alternatives}}<tr><td>{{name}}</td><td>{{status}}</td><td class="event-number">{{entryCount}}</td></tr>{{/alternatives}}</tbody></table>
+    {{#scenarios}}{{#journals}}{{> journal}}{{/journals}}{{#accounts}}{{> t-account}}{{/accounts}}{{/scenarios}}
+    {{#summary}}<table><caption>Table {{table}} {{name}} incremental impact ({{currency}})</caption><thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead><tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody></table>{{/summary}}
+    {{#outcomes}}{{^empty}}<table><caption>Table {{table}} {{name}} outcome ({{currency}})</caption><thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead><tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody></table>{{/empty}}{{/outcomes}}
   </section>
 </article>

@@ -1,5 +1,4 @@
-<p><em>Table {{table}}</em> records {{description}} on {{date}}.</p>
-<article class="event-journal"><header><span>{{date}}</span><span>{{description}}</span><small>{{reference}} · {{state}}</small></header>
+<article class="event-journal"><header><span>{{date}}</span><span>{{description}}</span><small>{{reference}}</small></header>
   <div class="event-scroll"><table><caption>Table {{table}} Journal entry ({{currency}})</caption>
     <thead><tr><th>Account</th><th>Name</th><th>Description</th><th class="event-number">Debit</th><th class="event-number">Credit</th></tr></thead>
     <tbody>{{#lines}}<tr><td>{{code}}</td><td>{{name}}</td><td>{{description}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/lines}}</tbody>
