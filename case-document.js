@@ -18,7 +18,7 @@ export function reportModel(data){
  let table=1,figure=0;
  const model={branding:{logo:/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(data.company.report_logo_data||'')?data.company.report_logo_data:null,position:data.company.invoice_logo_position==='right'?'right':'left',accent:/^#[0-9a-f]{6}$/i.test(data.company.invoice_accent_color||'')?data.company.invoice_accent_color:null},company:data.company.legal_name||data.company.name,title:data.case.name,currency:data.company.currency_code,
  date:new Intl.DateTimeFormat('en-ZA',{day:'numeric',month:'long',year:'numeric',timeZone:'Africa/Johannesburg'}).format(new Date(data.generated_at)),
- justification:data.case.notes||'No case justification recorded.',alternativesTable:table,alternatives:data.scenarios.map(s=>({name:s.name,status:s.status,entryCount:s.entries.length})),scenarios:[]};
+ justification:data.case.notes||'No case justification recorded.',alternativesTable:table,alternatives:data.scenarios.map(s=>({name:s.name,status:s.status,entryCount:(s.summary_entries?.length?s.summary_entries.length+'/':'')+s.entries.length})),scenarios:[]};
  for(const s of data.scenarios){
   const prepared=prepareEvents(s.summary_entries?s.summary_entries.map(summaryEntry):s.entries),section={health:s.health?.status||'Unchecked',findings:(s.health?.issues||[]).map(i=>({text:i.message||i.code.replaceAll('_',' '),entry:i.entry_id})),name:s.name,description:s.description||'No scenario description recorded.',empty:mode!=='none'&&!s.entries.length,journals:[],accounts:[],detailJournals:[]};
   if(mode==='journal')for(const entry of prepared.journals){let debit=0n,credit=0n;const lines=entry.lines.map(l=>{const dr=minorUnits(l.debit),cr=minorUnits(l.credit);debit+=dr;credit+=cr;return {code:l.account_code,name:l.account_name,description:l.name||l.description,debit:amount(dr),credit:amount(cr)};});section.journals.push({...eventData({entry}),table:++table,lines,debit:amount(debit),credit:amount(credit)});}
@@ -28,6 +28,7 @@ export function reportModel(data){
  }
  const selected=data.scenarios.find(s=>s.id===data.case.selected_scenario_id);
  if(selected){const rows=impactRows(data,selected.id);model.summary={name:selected.name,status:selected.status,table:++table,empty:!rows.length,rows:rows.map(r=>({code:r.code,name:r.name,baseline:money(r.baseline),chosen:money(r.chosen),change:money(r.change)}))};}
+ model.outcomes=data.scenarios.filter(s=>s.id!==selected?.id).map(s=>{const rows=impactRows(data,s.id).filter(r=>r.change!==0n);return {name:s.name,status:s.status,table:++table,empty:!rows.length,health:s.health?.status,rows:rows.map(r=>({code:r.code,name:r.name,debit:r.change>0n?money(r.change):'',credit:r.change<0n?money(-r.change):''}))};});
  return model;
 }
 export function caseDocumentMarkup(data){return Mustache.render(data.templates.case,reportModel(data),data.templates);}

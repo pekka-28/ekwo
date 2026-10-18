@@ -23,6 +23,16 @@
     </table></div>
     {{#empty}}<p>This scenario introduces no account movements.</p>{{/empty}}
     {{/summary}}
-    {{^summary}}<p>No scenario is selected. No calculation is applicable.</p>{{/summary}}
+    {{^summary}}<p>No scenario is selected. The alternatives below are compared with the Applied contribution.</p>{{/summary}}
+    {{#outcomes}}
+    <details class="outcome"><summary>{{name}} · {{status}}</summary>
+      <p>{{^empty}}<em>Table {{table}}</em> shows the net change from the posted Applied contribution, including dependent entries. {{/empty}}Health: {{health}}.</p>
+      {{#empty}}<p>No change to the Applied contribution.</p>{{/empty}}
+      {{^empty}}<table><caption>Table {{table}} {{name}} outcome ({{currency}})</caption>
+        <thead><tr><th>Account</th><th>Name</th><th class="event-number">Debit change</th><th class="event-number">Credit change</th></tr></thead>
+        <tbody>{{#rows}}<tr><td>{{code}}</td><td>{{name}}</td><td class="event-number">{{debit}}</td><td class="event-number">{{credit}}</td></tr>{{/rows}}</tbody>
+      </table>{{/empty}}
+    </details>
+    {{/outcomes}}
   </section>
 </article>
