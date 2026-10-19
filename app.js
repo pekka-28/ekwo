@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,
 const states=['Proposal','Reviewing','Accepted','Applied','Retired'];
 let auth=null;try{auth=JSON.parse(sessionStorage.getItem('ekwo-lustre-session')||'null')}catch{sessionStorage.removeItem('ekwo-lustre-session')}
 let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null,eventReview=null,eventMode='journal',eventLevel='summary',workspaceKind='case',planningAllowed=true;
-let restoringHistory=false;
+let restoringHistory=false,editorContextChanged=false;
 function rememberView(){
  const view={lustreView:true,workspaceKind,company:companyId,case:caseId,scenario:eventReview?.company===companyId&&eventReview?.case===caseId?eventReview.scenario.id:null};
  if(restoringHistory||pendingHistory)return;
@@ -34,6 +34,27 @@ async function api(path,body,method='POST'){
 }
 const rpc=(name,args)=>api('/rest/v1/rpc/lustre_'+name,args);
 async function task(fn){if(busy)return;busy=true;document.body.setAttribute('aria-busy','true');notice();try{await fn()}catch(e){if($('editor').open)$('editor-error').textContent=e.message;else notice(e.message,true)}finally{busy=false;document.body.removeAttribute('aria-busy');if(pendingHistory){const view=pendingHistory;pendingHistory=null;task(()=>restoreView(view));}}}
+// Shared settings are intentional. Refuse actions based on an outdated display.
+function contextKey(workspace,presentation){
+ return JSON.stringify({capture:workspace.active_case_id||null,
+  choices:workspace.cases.map(c=>[c.id,c.selected_scenario_id||null]).sort((a,b)=>a[0].localeCompare(b[0])),
+  presentation:caseId?{level:presentation?.level||'summary',transactions:presentation?.transactions||'journal'}:null});
+}
+async function checkPlanningContext(){
+ if(!companyId||!planningAllowed)return true;
+ if(editorContextChanged&&$('editor').open)throw Error('Planning settings changed. Close and reopen this editor before saving; your text is retained here.');
+ const previous=contextKey(overview,overview.cases.find(c=>c.id===caseId)?.presentation);
+ const current=await rpc('workspace',{p_company:companyId});
+ const presentation=caseId?await rpc('case_presentation',{p_company:companyId,p_case:caseId}):null;
+ if(previous===contextKey(current,presentation))return true;
+ if($('editor').open)editorContextChanged=true;
+ await refresh();
+ const message='Planning settings changed in another session. The view has been refreshed; the action was not performed. Review the settings and try again.';
+ if($('editor').open)$('editor-error').textContent=message+' Close and reopen this editor before saving; your text is retained here.';
+ else notice(message,true);
+ return false;
+}
+const planningTask=fn=>task(async()=>{if(await checkPlanningContext())await fn();});
 function logout(){auth=null;companyId=null;caseId=null;companies=[];overview={cases:[],batches:[]};sessionStorage.removeItem('ekwo-lustre-session');$('workspace').hidden=true;$('sign-out').hidden=true;$('content').replaceChildren();$('company-options').replaceChildren();$('side-menu').replaceChildren();$('company-name').textContent='Choose a company';$('editor').close();location.replace('sign-in.html');}
 $('sign-out').onclick=logout;
 function flag(code){return /^[A-Z]{2}$/.test(code||'')?String.fromCodePoint(...[...code].map(c=>127397+c.charCodeAt(0))):'';}
@@ -54,27 +75,27 @@ function renderPlanningSession(){eventReview=null;caseId=null;overview={cases:[]
 async function refresh(){if(companyId){const access=await rpc('access',{p_company:companyId});planningAllowed=access.planning;sidebar();if(planningAllowed&&!access.planning_active){renderPlanningSession();return;}if(!planningAllowed){eventReview=null;caseId=null;overview={cases:[],batches:[]};$('cases-nav').querySelector('.nav-label').textContent='Reports';$('forecast-nav').hidden=true;await openReportRegister();return;}}if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_events',{p_company:companyId,p_scenario:eventReview.scenario.id});if(canReview(snapshot))Object.assign(eventReview,snapshot);else eventReview=null;}overview=companyId?await rpc('workspace',{p_company:companyId}):{cases:[],batches:[]};if(caseId){const c=overview.cases.find(c=>c.id===caseId);if(c)c.presentation=await rpc('case_presentation',{p_company:companyId,p_case:caseId});}if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
 function action(id,label){return `<button id="${id}">${label}</button>`;}
 function render(){rememberView();notice();$('breadcrumb').textContent=workspaceKind==='forecast'?'FORECAST':'CASES';$('page-actions').innerHTML='';if(!companyId){$('page-title').textContent='Companies';$('content').innerHTML=companies.length?`<div class="company-grid">${companies.map(c=>`<button class="company-card" data-company="${c.id}"><strong>${esc(c.name)}</strong><span class="country">${flag(c.country)} ${esc(c.country)}</span></button>`).join('')}</div>`:'<p class="empty">No companies.</p>';$('content').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));return;}
- const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase){if(eventReview?.company===companyId&&eventReview?.case===caseId){const current=selectedCase.scenarios.find(s=>s.id===eventReview.scenario.id);if(current){eventReview.scenario=current;return renderEvents(selectedCase);}eventReview=null;}return renderCase(selectedCase);}eventReview=null;
+ const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase){if(eventReview?.company===companyId&&eventReview?.case===caseId){const current=selectedCase.scenarios.find(s=>s.id===eventReview.scenario.id);if(current){eventReview.scenario=current;eventLevel=selectedCase.presentation?.level||'summary';eventMode=selectedCase.presentation?.transactions||'journal';return renderEvents(selectedCase);}eventReview=null;}return renderCase(selectedCase);}eventReview=null;
  const listedCases=overview.cases.filter(c=>(c.kind||'case')===workspaceKind);
- $('page-title').textContent=workspaceKind==='forecast'?'Forecast':'Cases';if(overview.can_write&&workspaceKind==='case'){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>editCase();}
+ $('page-title').textContent=workspaceKind==='forecast'?'Forecast':'Cases';if(overview.can_write&&workspaceKind==='case'){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>planningTask(()=>editCase());}
  $('content').innerHTML=listedCases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${listedCases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===c.selected_scenario_id)?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:`<p class="empty">${workspaceKind==='forecast'?'No forecasts. A source budget is required.':'No cases.'}</p>`;
  $('content').querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>task(async()=>{caseId=b.dataset.case;await refresh()}));}
 function statusOptions(current){return [...new Set([...states,current])].filter(Boolean).map(s=>`<option ${s===current?'selected':''}>${esc(s)}</option>`).join('');}
-function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.presentation?.transactions||'journal';$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">'+(c.kind==='forecast'?'Forecast':'Cases')+'</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Report')+action('past-reports','Reports')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+(c.kind==='forecast'?'':action('new-scenario','New scenario')):'');$('clear-selection').onclick=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>editCase(c);if($('new-scenario'))$('new-scenario').onclick=()=>editScenario(c);}
+function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.presentation?.transactions||'journal';$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">'+(c.kind==='forecast'?'Forecast':'Cases')+'</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Report')+action('past-reports','Reports')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+(c.kind==='forecast'?'':action('new-scenario','New scenario')):'');$('clear-selection').onclick=()=>planningTask(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>planningTask(()=>editCase(c));if($('new-scenario'))$('new-scenario').onclick=()=>planningTask(()=>editScenario(c));}
  $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${scenarioName(s)}</td><td><span class="state">${esc(s.status||'Proposal')}</span></td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${c.selected_scenario_id===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" ${canReview(s)?'':'disabled'} aria-label="Events for ${esc(s.name)}">${s.summary_entries?`${s.summary_entries}/`:""}${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}" ${!s.actions?.edit?'disabled title="Reported scenario: copy to edit"':''}>Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}" ${canReview(s)?'':'disabled'}>Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
  $('page-actions').insertAdjacentHTML('afterbegin',`<label class="events-switch"><select id="case-level" aria-label="Summary or detail"><option value="summary" ${eventLevel==='summary'?'selected':''}>Summary</option><option value="detail" ${eventLevel==='detail'?'selected':''}>Detail</option></select></label><label class="events-switch"><select id="case-view" aria-label="Display type"><option value="journal" ${eventMode==='journal'?'selected':''}>Journal</option><option value="accounts" ${eventMode==='accounts'?'selected':''}>T-accounts</option><option value="chart" ${eventMode==='chart'?'selected':''}>Accounts</option></select></label>`);
- $('case-level').onchange=e=>{const level=e.target.value;task(()=>saveCasePresentation(c,level,eventMode));};
- $('case-view').onchange=e=>{const view=e.target.value;task(()=>saveCasePresentation(c,eventLevel,view));};
- $('case-document').onclick=()=>task(()=>openCaseDocument(c));$('past-reports').onclick=()=>task(()=>openReportRegister(c));
- if(overview.can_write&&c.kind!=='forecast'){$('page-actions').insertAdjacentHTML('afterbegin',action('capture-case',overview.active_case_id===c.id?'Stop capture':'Use for capture'));$('capture-case').onclick=()=>task(async()=>{await rpc('capture_case',{p_company:companyId,p_case:overview.active_case_id===c.id?null:c.id});await refresh();});}
+ $('case-level').onchange=e=>{const level=e.target.value;planningTask(()=>saveCasePresentation(c,level,eventMode));};
+ $('case-view').onchange=e=>{const view=e.target.value;planningTask(()=>saveCasePresentation(c,eventLevel,view));};
+ $('case-document').onclick=()=>planningTask(()=>openCaseDocument(c));$('past-reports').onclick=()=>task(()=>openReportRegister(c));
+ if(overview.can_write&&c.kind!=='forecast'){$('page-actions').insertAdjacentHTML('afterbegin',action('capture-case',overview.active_case_id===c.id?'Stop capture':'Use for capture'));$('capture-case').onclick=()=>planningTask(async()=>{await rpc('capture_case',{p_company:companyId,p_case:overview.active_case_id===c.id?null:c.id});await refresh();});}
  if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<details class="case-description"><summary>Case description</summary><div class="description-text">${esc(c.notes)}</div></details>`);
  if(overview.active_case_id===c.id)$('content').insertAdjacentHTML('afterbegin','<p class="capture-state">Active case for capture</p>');
- for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>task(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
+ for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>planningTask(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
  $('back-cases').onclick=e=>{e.preventDefault();caseId=null;render()};
- for(const el of $('content').querySelectorAll('[data-select]'))el.onchange=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:el.dataset.select});await refresh()});
- for(const el of $('content').querySelectorAll('[data-edit]'))el.onclick=()=>editScenario(c,c.scenarios.find(s=>s.id===el.dataset.edit));
- for(const el of $('content').querySelectorAll('[data-copy]'))el.onclick=()=>copyScenario(c,c.scenarios.find(s=>s.id===el.dataset.copy));
- const refs=c.references||[];if(refs.length){const section=document.createElement('section');section.className='references';section.innerHTML='<h2>Reference batches</h2><div class="case-table"><table><thead><tr><th>Reference</th><th>Entries</th><th></th></tr></thead><tbody>'+refs.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+b.entries+'</td><td>'+(overview.can_write?'<button data-reference="'+b.id+'">Copy</button>':'')+'</td></tr>').join('')+'</tbody></table></div>';$('content').append(section);section.querySelectorAll('[data-reference]').forEach(button=>button.onclick=()=>{const b=refs.find(b=>b.id===button.dataset.reference);copyScenario(c,{name:b.name,batch_id:b.id});});}
+ for(const el of $('content').querySelectorAll('[data-select]'))el.onchange=()=>planningTask(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:el.dataset.select});await refresh()});
+ for(const el of $('content').querySelectorAll('[data-edit]'))el.onclick=()=>planningTask(()=>editScenario(c,c.scenarios.find(s=>s.id===el.dataset.edit)));
+ for(const el of $('content').querySelectorAll('[data-copy]'))el.onclick=()=>planningTask(()=>copyScenario(c,c.scenarios.find(s=>s.id===el.dataset.copy)));
+ const refs=c.references||[];if(refs.length){const section=document.createElement('section');section.className='references';section.innerHTML='<h2>Reference batches</h2><div class="case-table"><table><thead><tr><th>Reference</th><th>Entries</th><th></th></tr></thead><tbody>'+refs.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+b.entries+'</td><td>'+(overview.can_write?'<button data-reference="'+b.id+'">Copy</button>':'')+'</td></tr>').join('')+'</tbody></table></div>';$('content').append(section);section.querySelectorAll('[data-reference]').forEach(button=>button.onclick=()=>{const b=refs.find(b=>b.id===button.dataset.reference);planningTask(()=>copyScenario(c,{name:b.name,batch_id:b.id}));});}
 
 }
 async function openEvents(c,s){
@@ -92,7 +113,7 @@ function renderEvents(c){
  $('page-actions').innerHTML=(capture?action('add-event','Add event')+action('assign-event','Assign existing event'):'');
  $('content').innerHTML=(s.description?`<details class="scenario-description"><summary>Scenario description</summary><div class="description-text">${esc(s.description)}</div></details>`:'')+summaryMarkup(eventReview,eventMode,companies.find(c=>c.id===companyId)?.currency_code||'',eventLevel);
  for(const button of $('content').querySelectorAll('[data-account-open]'))button.onclick=()=>{const row=[...$('content').querySelectorAll('[data-account-detail]')].find(r=>r.dataset.accountDetail===button.dataset.accountOpen);row.hidden=!row.hidden;button.setAttribute('aria-expanded',String(!row.hidden));};
- if(capture){$('add-event').onclick=()=>task(()=>addEvent(s));$('assign-event').onclick=()=>assignEvent(s);}
+ if(capture){$('add-event').onclick=()=>planningTask(()=>addEvent(s));$('assign-event').onclick=()=>planningTask(()=>assignEvent(s));}
  $('events-cases').onclick=e=>{e.preventDefault();eventReview=null;caseId=null;render();};
  $('events-case').onclick=e=>{e.preventDefault();eventReview=null;task(()=>refresh());};
 }
@@ -115,11 +136,11 @@ function assignEvent(s){
   await rpc('assign_event',{p_company:company,p_scenario:s.id,p_entry:entry,p_expected_batch:reviewed.source_batch,p_expected_ids:reviewed.ids});
   eventReview.entries=await rpc('batch_entries',{p_company:company,p_batch:s.batch_id});
  });
- $('assignment-search').onclick=()=>task(async()=>{
+ $('assignment-search').onclick=()=>planningTask(async()=>{
   reviewed=null;entry=null;$('assignment-preview').textContent='';
   const rows=await rpc('find_events',{p_company:company,p_query:$('assignment-query').value});
   $('assignment-results').innerHTML=rows.length?`<div class="event-scroll"><table><thead><tr><th></th><th>Date</th><th>Event</th><th>Batch</th><th>State</th></tr></thead><tbody>${rows.map(e=>`<tr><td><input type="radio" name="existing-event" data-existing="${esc(e.id)}" aria-label="Review ${esc(e.description)}"></td><td>${esc(displayDate(e.entry_date))}</td><td>${esc(e.description)}<br><small>${esc(e.reference)}</small></td><td>${esc(e.batch_name||'Unbatched')}</td><td>${esc(e.state)}</td></tr>`).join('')}</tbody></table></div>`:'<p>No matching events.</p>';
-  for(const el of $('assignment-results').querySelectorAll('[data-existing]'))el.onchange=()=>task(async()=>{
+  for(const el of $('assignment-results').querySelectorAll('[data-existing]'))el.onchange=()=>planningTask(async()=>{
    reviewed=null;entry=null;$('assignment-preview').textContent='';
    const preview=await rpc('assignment_preview',{p_company:company,p_entry:el.dataset.existing});
    reviewed=preview;entry=el.dataset.existing;
@@ -154,9 +175,9 @@ async function openReportRegister(c=null){
  downloadReport(report);
 }));
 }
-function editor(title,fields,save){$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
+function editor(title,fields,save){editorContextChanged=false;$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
 function editCase(c){editor(c?'Case details':'New case',`<label>Name<input name="name" required value="${esc(c?.name||'')}"></label><label>Case description<textarea name="notes" rows="14">${esc(c?.notes||'')}</textarea></label>`,async d=>{caseId=await rpc('case_save',{p_company:companyId,p_case:c?.id||null,p_name:d.get('name'),p_notes:d.get('notes')});});}
 function editScenario(c,s){editor(s?'Scenario details':'New scenario',`<label>Name<input name="name" required value="${esc(s?.name||'')}"></label><label>Status<select name="status">${statusOptions(s?.status||'Proposal')}</select></label><label>Scenario description<textarea name="description" rows="14">${esc(s?.description||'')}</textarea></label>`,async d=>{await rpc('scenario_details_save',{p_company:companyId,p_case:c.id,p_scenario:s?.id||null,p_name:d.get('name'),p_status:d.get('status'),p_description:d.get('description')});});}
 function copyScenario(c,s){editor('Copy scenario',`<label>Name<input name="name" required value="${esc(s.name+' - copy')}"></label><label>Copy as<select name="kind"><option value="alternative">Scenario</option><option value="reference">Reference batch</option></select></label>`,async d=>{await rpc('copy_batch',{p_company:companyId,p_batch:s.batch_id,p_name:d.get('name'),p_reference:d.get('kind')==='reference'});});}
-$('editor-form').onsubmit=e=>{e.preventDefault();task(async()=>{await saveEditor(new FormData(e.target));$('editor').close();await refresh()})};$('close-editor').onclick=$('cancel-editor').onclick=()=>$('editor').close();
+$('editor-form').onsubmit=e=>{e.preventDefault();planningTask(async()=>{await saveEditor(new FormData(e.target));$('editor').close();await refresh()})};$('close-editor').onclick=$('cancel-editor').onclick=()=>$('editor').close();
 if(auth)start().catch(e=>{sessionStorage.setItem('ekwo-login-error',e.message);logout();});else location.replace('sign-in.html');
