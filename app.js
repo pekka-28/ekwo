@@ -1,9 +1,6 @@
-import {reportLogo} from './report-branding.js';
-import {scenarioName,canReview,summaryMarkup} from './scenario-summary.js?v=compact-dates-v1';
-import {displayDate} from './format.js?v=compact-dates-v1';
+import {scenarioName,canReview,summaryMarkup} from './scenario-summary.js?v=database-presentation-v1';
+import {displayDate} from './format.js?v=database-presentation-v1';
 import {openEventEditor} from './event-editor.js';
-import {documentHtml} from './case-document.js?v=complete-report-v4&display=compact-dates-v1';
-import {eventsMarkup} from './events-view.js?v=compact-dates-v1';
 import {nativeIcon} from './icons.js';
 ﻿import {config} from './config.js';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -33,7 +30,7 @@ const nativeUrl=path=>companyId?`${nativeBase}/c/${encodeURIComponent(companyId)
 function notice(text='',error=false){$('status').hidden=!text;$('status').textContent=text;$('status').className=error?'error':'';}
 async function api(path,body,method='POST'){
  if(auth?.expires_at&&auth.expires_at<Date.now()/1000+60){const r=await fetch(config.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:config.publishableKey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:auth.refresh_token})});if(!r.ok){logout();throw Error('Please sign in again');}auth=await r.json();sessionStorage.setItem('ekwo-lustre-session',JSON.stringify(auth));}
- const r=await fetch(config.url+path,{method,headers:{apikey:config.publishableKey,Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const text=await r.text(),data=text?JSON.parse(text):null;if(!r.ok)throw Error(data?.message||data?.error_description||'Request failed');return data;
+ const r=await fetch(config.url+path,{method,headers:{apikey:config.publishableKey,Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const text=await r.text(),data=text?JSON.parse(text):null;if(!r.ok)throw Error(data?.message||data?.error_description||data?.error||'Request failed');return data;
 }
 const rpc=(name,args)=>api('/rest/v1/rpc/lustre_'+name,args);
 async function task(fn){if(busy)return;busy=true;document.body.setAttribute('aria-busy','true');notice();try{await fn()}catch(e){if($('editor').open)$('editor-error').textContent=e.message;else notice(e.message,true)}finally{busy=false;document.body.removeAttribute('aria-busy');if(pendingHistory){const view=pendingHistory;pendingHistory=null;task(()=>restoreView(view));}}}
@@ -53,7 +50,7 @@ function sidebar(){const groups=[['Day to day',[['Overview','','M3 11 12 3l9 8 M
  document.querySelectorAll('#side-menu a').forEach(a=>a.title=a.textContent.trim());for(const kind of ['case','forecast'])$(kind==='case'?'cases-nav':'forecast-nav').onclick=e=>{e.preventDefault();task(async()=>{workspaceKind=kind;caseId=null;eventReview=null;sidebar();await refresh();});};}
 async function start(){companies=await api('/rest/v1/companies?select=id,name,legal_name,country,currency_code,language&order=name',null,'GET');const stored=sessionStorage.getItem('ekwo-lustre-company:'+auth.user.id);companyId=companies.some(c=>c.id===stored)?stored:companies.length===1?companies[0].id:null;$('account-name').textContent=auth.user.email;$('workspace').hidden=false;$('sign-out').hidden=false;companyPicker();sidebar();await refresh();}
 async function selectCompany(id){if(!companies.some(c=>c.id===id))return;companyId=id;caseId=null;sessionStorage.setItem('ekwo-lustre-company:'+auth.user.id,id);closeCompanies();companyPicker();sidebar();await refresh();}
-async function refresh(){if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_snapshot',{p_company:companyId,p_scenario:eventReview.scenario.id});if(canReview(snapshot?.health))Object.assign(eventReview,snapshot);else eventReview=null;}overview=companyId?await rpc('overview',{p_company:companyId}):{cases:[],batches:[]};if(caseId){const c=overview.cases.find(c=>c.id===caseId);if(c)c.presentation=await rpc('case_presentation',{p_company:companyId,p_case:caseId});}if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
+async function refresh(){if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_events',{p_company:companyId,p_scenario:eventReview.scenario.id});if(canReview(snapshot))Object.assign(eventReview,snapshot);else eventReview=null;}overview=companyId?await rpc('workspace',{p_company:companyId}):{cases:[],batches:[]};if(caseId){const c=overview.cases.find(c=>c.id===caseId);if(c)c.presentation=await rpc('case_presentation',{p_company:companyId,p_case:caseId});}if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
 function action(id,label){return `<button id="${id}">${label}</button>`;}
 function render(){rememberView();notice();$('breadcrumb').textContent=workspaceKind==='forecast'?'FORECAST':'CASES';$('page-actions').innerHTML='';if(!companyId){$('page-title').textContent='Companies';$('content').innerHTML=companies.length?`<div class="company-grid">${companies.map(c=>`<button class="company-card" data-company="${c.id}"><strong>${esc(c.name)}</strong><span class="country">${flag(c.country)} ${esc(c.country)}</span></button>`).join('')}</div>`:'<p class="empty">No companies.</p>';$('content').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));return;}
  const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase){if(eventReview?.company===companyId&&eventReview?.case===caseId){const current=selectedCase.scenarios.find(s=>s.id===eventReview.scenario.id);if(current){eventReview.scenario=current;return renderEvents(selectedCase);}eventReview=null;}return renderCase(selectedCase);}eventReview=null;
@@ -63,7 +60,7 @@ function render(){rememberView();notice();$('breadcrumb').textContent=workspaceK
  $('content').querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>task(async()=>{caseId=b.dataset.case;await refresh()}));}
 function statusOptions(current){return [...new Set([...states,current])].filter(Boolean).map(s=>`<option ${s===current?'selected':''}>${esc(s)}</option>`).join('');}
 function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.presentation?.transactions||'journal';$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">'+(c.kind==='forecast'?'Forecast':'Cases')+'</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Report')+action('past-reports','Reports')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+(c.kind==='forecast'?'':action('new-scenario','New scenario')):'');$('clear-selection').onclick=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>editCase(c);if($('new-scenario'))$('new-scenario').onclick=()=>editScenario(c);}
- $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${scenarioName(s)}</td><td><span class="state">${esc(s.status||'Proposal')}</span></td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${c.selected_scenario_id===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" ${canReview(s.health)?'':'disabled'} aria-label="Events for ${esc(s.name)}">${s.summary_entries?`${s.summary_entries}/`:""}${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}" ${s.reported_at?'disabled title="Reported scenario: copy to edit"':''}>Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}" ${canReview(s.health)?'':'disabled'}>Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
+ $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${scenarioName(s)}</td><td><span class="state">${esc(s.status||'Proposal')}</span></td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${c.selected_scenario_id===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" ${canReview(s)?'':'disabled'} aria-label="Events for ${esc(s.name)}">${s.summary_entries?`${s.summary_entries}/`:""}${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}" ${!s.actions?.edit?'disabled title="Reported scenario: copy to edit"':''}>Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}" ${canReview(s)?'':'disabled'}>Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
  $('page-actions').insertAdjacentHTML('afterbegin',`<label class="events-switch"><select id="case-level" aria-label="Summary or detail"><option value="summary" ${eventLevel==='summary'?'selected':''}>Summary</option><option value="detail" ${eventLevel==='detail'?'selected':''}>Detail</option></select></label><label class="events-switch"><select id="case-view" aria-label="Display type"><option value="journal" ${eventMode==='journal'?'selected':''}>Journal</option><option value="accounts" ${eventMode==='accounts'?'selected':''}>T-accounts</option><option value="chart" ${eventMode==='chart'?'selected':''}>Accounts</option></select></label>`);
  $('case-level').onchange=e=>{const level=e.target.value;task(()=>saveCasePresentation(c,level,eventMode));};
  $('case-view').onchange=e=>{const view=e.target.value;task(()=>saveCasePresentation(c,eventLevel,view));};
@@ -76,14 +73,13 @@ function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.p
  for(const el of $('content').querySelectorAll('[data-select]'))el.onchange=()=>task(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:el.dataset.select});await refresh()});
  for(const el of $('content').querySelectorAll('[data-edit]'))el.onclick=()=>editScenario(c,c.scenarios.find(s=>s.id===el.dataset.edit));
  for(const el of $('content').querySelectorAll('[data-copy]'))el.onclick=()=>copyScenario(c,c.scenarios.find(s=>s.id===el.dataset.copy));
- const owned=new Set(c.scenarios.map(s=>s.batch_id));let changed=true;while(changed){changed=false;for(const b of overview.batches||[])if(owned.has(b.copied_from)&&!owned.has(b.id)){owned.add(b.id);changed=true;}}
- const refs=(overview.batches||[]).filter(b=>b.is_reference&&owned.has(b.id));if(refs.length){const section=document.createElement('section');section.className='references';section.innerHTML='<h2>Reference batches</h2><div class="case-table"><table><thead><tr><th>Reference</th><th>Entries</th><th></th></tr></thead><tbody>'+refs.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+b.entries+'</td><td>'+(overview.can_write?'<button data-reference="'+b.id+'">Copy</button>':'')+'</td></tr>').join('')+'</tbody></table></div>';$('content').append(section);section.querySelectorAll('[data-reference]').forEach(button=>button.onclick=()=>{const b=refs.find(b=>b.id===button.dataset.reference);copyScenario(c,{name:b.name,batch_id:b.id});});}
+ const refs=c.references||[];if(refs.length){const section=document.createElement('section');section.className='references';section.innerHTML='<h2>Reference batches</h2><div class="case-table"><table><thead><tr><th>Reference</th><th>Entries</th><th></th></tr></thead><tbody>'+refs.map(b=>'<tr><td>'+esc(b.name)+'</td><td>'+b.entries+'</td><td>'+(overview.can_write?'<button data-reference="'+b.id+'">Copy</button>':'')+'</td></tr>').join('')+'</tbody></table></div>';$('content').append(section);section.querySelectorAll('[data-reference]').forEach(button=>button.onclick=()=>{const b=refs.find(b=>b.id===button.dataset.reference);copyScenario(c,{name:b.name,batch_id:b.id});});}
 
 }
 async function openEvents(c,s){
- const company=companyId;const snapshot=await rpc('scenario_snapshot',{p_company:company,p_scenario:s.id});
+ const company=companyId;const snapshot=await rpc('scenario_events',{p_company:company,p_scenario:s.id});
  if(companyId!==company||caseId!==c.id)return;
- if(!canReview(snapshot?.health)){eventReview=null;await refresh();notice('Events review is unavailable until this scenario reconciles.');return;}
+ if(!canReview(snapshot)){eventReview=null;await refresh();notice('Events review is unavailable until this scenario reconciles.');return;}
  eventLevel=snapshot.presentation?.level||'summary';eventMode=snapshot.presentation?.transactions||'journal';eventReview={company,case:c.id,scenario:s,...snapshot};renderEvents(c);
 }
 function renderEvents(c){
@@ -91,7 +87,7 @@ function renderEvents(c){
  const s=eventReview.scenario;
  $('page-title').textContent=s.name;
  $('breadcrumb').innerHTML=`<a href="#cases" id="events-cases">${c.kind==='forecast'?'Forecast':'Cases'}</a> / <a href="#case" id="events-case">${esc(c.name)}</a> / Events`;
- const capture=!s.reported_at&&c.kind!=='forecast'&&overview.can_write&&overview.active_case_id===c.id&&c.selected_scenario_id===s.id;
+ const capture=s.actions?.capture===true;
  $('page-actions').innerHTML=(capture?action('add-event','Add event')+action('assign-event','Assign existing event'):'');
  $('content').innerHTML=(s.description?`<details class="scenario-description"><summary>Scenario description</summary><div class="description-text">${esc(s.description)}</div></details>`:'')+summaryMarkup(eventReview,eventMode,companies.find(c=>c.id===companyId)?.currency_code||'',eventLevel);
  for(const button of $('content').querySelectorAll('[data-account-open]'))button.onclick=()=>{const row=[...$('content').querySelectorAll('[data-account-detail]')].find(r=>r.dataset.accountDetail===button.dataset.accountOpen);row.hidden=!row.hidden;button.setAttribute('aria-expanded',String(!row.hidden));};
@@ -130,19 +126,32 @@ function assignEvent(s){
   });
  });
 }
+function downloadReport(report){
+ if(!report?.html)throw Error(report?.error||'Report has not completed. Retry it from Reports.');
+ const url=URL.createObjectURL(new Blob([report.html],{type:'text/html;charset=utf-8'}));
+ const link=document.createElement('a');link.href=url;link.download=(report.name||'Report').replace(/[^a-z0-9 -]/gi,'').trim().slice(0,80)+'.html';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
 async function openCaseDocument(c){
- const [data,response]=await Promise.all([rpc('report_create',{p_company:companyId,p_case:c.id,p_renderer:'complete-report-v4'}),fetch('case-document.css',{cache:'reload'})]);
- if(!data)throw Error('Case not found');if(!response.ok)throw Error('Document stylesheet unavailable');
- const branding=await reportLogo(data.company,{project:config.url,token:auth.access_token,key:config.publishableKey});data.company.report_logo_data=branding.logo;if(branding.warning)notice(branding.warning);
- const html=documentHtml(data,await response.text());await rpc('report_finish',{p_report:data.report_id,p_html:html});const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
- const link=document.createElement('a');link.href=url;link.download=data.case.name.replace(/[^a-z0-9 -]/gi,'').trim().slice(0,80)+'.html';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);await refresh();
+ const company=companyId,key='report-request:'+auth.user.id+':'+company+':'+c.id;
+ const request=sessionStorage.getItem(key)||crypto.randomUUID();sessionStorage.setItem(key,request);
+ const run=await api('/functions/v1/report-run',{company,case:c.id,request});
+ const report=await rpc('report_get',{p_company:company,p_report:run.report_id});
+ downloadReport(report);sessionStorage.removeItem(key);await refresh();
 }
 async function openReportRegister(c){
  const reports=await rpc('reports',{p_company:companyId,p_case:c.id});
  $('page-title').textContent=c.name+' — Reports';$('page-actions').innerHTML='';
  $('breadcrumb').innerHTML='<a href="#case" id="reports-case">'+esc(c.name)+'</a> / Reports';$('reports-case').onclick=e=>{e.preventDefault();renderCase(c);};
  $('content').innerHTML=reports.length?'<div class="case-table"><table><thead><tr><th>Created</th><th>Selected scenario</th><th>Transactions</th><th>Presentation</th><th></th></tr></thead><tbody>'+reports.map(r=>'<tr><td title="'+esc(r.id)+'">'+esc(displayDate(r.created_at))+' '+esc(new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Africa/Johannesburg'}).format(new Date(r.created_at)))+'</td><td>'+esc(r.selected||'None')+'</td><td>'+esc(r.options.level)+'</td><td>'+esc(r.options.transactions)+'</td><td><button data-report="'+esc(r.id)+'">'+(r.complete?'Open':'Rebuild')+'</button></td></tr>').join('')+'</tbody></table></div>':'<p class="empty">No reports.</p>';
- $('content').querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>task(async()=>{const r=await rpc('report_get',{p_company:companyId,p_report:b.dataset.report});if(!r)throw Error('Report unavailable');let html=r.html;if(!html){const css=await fetch('case-document.css');if(!css.ok)throw Error('Document stylesheet unavailable');html=documentHtml(r.snapshot,await css.text());}const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download='Report-'+r.id+'.html';link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}));
+ $('content').querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>task(async()=>{
+ const company=companyId;let report=await rpc('report_get',{p_company:company,p_report:b.dataset.report});
+ if(!report)throw Error('Report unavailable');
+ if(report.status!=='complete'){
+  await api('/functions/v1/report-run',{company,report:report.id});
+  report=await rpc('report_get',{p_company:company,p_report:report.id});
+ }
+ downloadReport(report);
+}));
 }
 function editor(title,fields,save){$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
 function editCase(c){editor(c?'Case details':'New case',`<label>Name<input name="name" required value="${esc(c?.name||'')}"></label><label>Case description<textarea name="notes" rows="14">${esc(c?.notes||'')}</textarea></label>`,async d=>{caseId=await rpc('case_save',{p_company:companyId,p_case:c?.id||null,p_name:d.get('name'),p_notes:d.get('notes')});});}

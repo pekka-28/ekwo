@@ -22,4 +22,4 @@ Run `node tools/build-ui.mjs` to generate the public pages and shared assets. Ru
 
 The generated shell places the logo in the folding sidebar, uses country-name badges and the native route icons, and puts appearance and sign-out controls in the account menu. On mobile, Menu opens the sidebar drawer. All companies stays in this application. Accounting links retain the requested separate native Ekwo tab.
 
-Case document downloads a Mustache-rendered HTML snapshot. Templates and partials resolve from Lustre to User to CoA; only administrators configure them. No selection means no summary calculation. Vendored Mustache 4.2.0 retains its licence and source record.
+Report requests the Supabase report-run Edge Function, then downloads its stored HTML from Reports. The separate reporting CSCI applies Mustache; no report renderer or accounting aggregation is shipped to the browser. Templates and partials resolve from Lustre to User to CoA; only administrators configure them. No selection means no summary calculation. The workspace and Events RPCs supply ordered accounting results and permitted actions.
