@@ -1,13 +1,16 @@
+// events-view.js
 import {displayEntryDate} from './format.js?v=database-presentation-v1';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function minorUnits(value){
-  const match=String(value??0).match(/^(-?)(\d+)(?:\.(\d{1,2})0*)?$/);
-  if(!match)throw Error('Unsupported monetary amount');
-  return (match[1]?-1n:1n)*(BigInt(match[2])*100n+BigInt((match[3]||'').padEnd(2,'0')));
+export function minorUnits(value,decimals=2){
+  const match=String(value??0).match(/^(-?)(\d+)(?:\.(\d+))?$/);
+  if(!match||!Number.isInteger(decimals)||decimals<0||decimals>20)throw Error('Unsupported monetary amount or currency precision');
+  const fraction=match[3]||'';
+  if(/[^0]/.test(fraction.slice(decimals)))throw Error('Amount exceeds currency precision');
+  return (match[1]?-1n:1n)*(BigInt(match[2])*10n**BigInt(decimals)+BigInt(fraction.slice(0,decimals).padEnd(decimals,'0')||'0'));
 }
-export function money(value){
-  const negative=value<0n,absolute=negative?-value:value;
-  return (negative?'-':'')+(absolute/100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')+'.'+(absolute%100n).toString().padStart(2,'0');
+export function money(value,decimals=2){
+  const negative=value<0n,absolute=negative?-value:value,scale=10n**BigInt(decimals);
+  return (negative?'-':'')+(absolute/scale).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',')+(decimals?'.'+(absolute%scale).toString().padStart(decimals,'0'):'');
 }
 export function prepareEvents(data){
   if(data?.contract!=='events-v1')throw Error('Unsupported Events data; reload the application.');

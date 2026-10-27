@@ -1,0 +1,10 @@
+{
+  "name": "lustre-browser", "private": true, "type": "module",
+  "scripts": {
+    "build:data": "esbuild src/data-client.ts --bundle --minify --legal-comments=none --format=esm --platform=browser --target=es2022 --outfile=data-client.js --banner:js=//data-client.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tools/data-client.test.ts tools/journal.test.ts"
+  },
+  "dependencies": {"@supabase/supabase-js": "2.116.0"},
+  "devDependencies": {"esbuild": "0.28.2", "typescript": "5.9.3", "@types/node": "26.6.5"}
+}

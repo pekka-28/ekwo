@@ -1,11 +1,15 @@
+// app.js
 import {scenarioName,canReview,summaryMarkup} from './scenario-summary.js?v=database-presentation-v1';
 import {displayDate} from './format.js?v=database-presentation-v1';
 import {openEventEditor} from './event-editor.js';
 import {nativeIcon} from './icons.js';
 ﻿import {config} from './config.js';
+import {createDataClient} from './data-client.js';
+const dataClient=createDataClient(config.url,config.publishableKey,sessionStorage);
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const states=['Proposal','Reviewing','Accepted','Applied','Retired'];
-let auth=null;try{auth=JSON.parse(sessionStorage.getItem('ekwo-lustre-session')||'null')}catch{sessionStorage.removeItem('ekwo-lustre-session')}
+let auth=null;
+dataClient.auth.onAuthStateChange((event,session)=>{auth=session;if(event==='SIGNED_OUT')location.replace('sign-in.html');});
 let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null,eventReview=null,eventMode='journal',eventLevel='summary',workspaceKind='case',planningAllowed=true;
 let restoringHistory=false,editorContextChanged=false;
 function rememberView(){
@@ -28,11 +32,9 @@ window.addEventListener('popstate',e=>{if(!auth||!e.state?.lustreView)return;if(
 const nativeBase='https://cloud.ekwo.ai';
 const nativeUrl=path=>companyId?`${nativeBase}/c/${encodeURIComponent(companyId)}${path?'/'+path:''}`:nativeBase+'/';
 function notice(text='',error=false){$('status').hidden=!text;$('status').textContent=text;$('status').className=error?'error':'';}
-async function api(path,body,method='POST'){
- if(auth?.expires_at&&auth.expires_at<Date.now()/1000+60){const r=await fetch(config.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:config.publishableKey,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:auth.refresh_token})});if(!r.ok){logout();throw Error('Please sign in again');}auth=await r.json();sessionStorage.setItem('ekwo-lustre-session',JSON.stringify(auth));}
- const r=await fetch(config.url+path,{method,headers:{apikey:config.publishableKey,Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const text=await r.text(),data=text?JSON.parse(text):null;if(!r.ok){const message=data?.message||data?.error_description||data?.error||'Request failed';if(r.status===403&&message.startsWith('Planning is not active'))renderPlanningSession();throw Error(message);}return data;
-}
-const rpc=(name,args)=>api('/rest/v1/rpc/lustre_'+name,args);
+async function planningRequest(request){try{return await request;}catch(error){if(error.message.startsWith('Planning is not active'))renderPlanningSession();throw error;}}
+const rpc=(name,args)=>planningRequest(dataClient.rpc(name,args));
+const requestReport=body=>planningRequest(dataClient.report(body));
 async function task(fn){if(busy)return;busy=true;document.body.setAttribute('aria-busy','true');notice();try{await fn()}catch(e){if($('editor').open)$('editor-error').textContent=e.message;else notice(e.message,true)}finally{busy=false;document.body.removeAttribute('aria-busy');if(pendingHistory){const view=pendingHistory;pendingHistory=null;task(()=>restoreView(view));}}}
 // Shared settings are intentional. Refuse actions based on an outdated display.
 function contextKey(workspace,presentation){
@@ -55,7 +57,7 @@ async function checkPlanningContext(){
  return false;
 }
 const planningTask=fn=>task(async()=>{if(await checkPlanningContext())await fn();});
-function logout(){auth=null;companyId=null;caseId=null;companies=[];overview={cases:[],batches:[]};sessionStorage.removeItem('ekwo-lustre-session');$('workspace').hidden=true;$('sign-out').hidden=true;$('content').replaceChildren();$('company-options').replaceChildren();$('side-menu').replaceChildren();$('company-name').textContent='Choose a company';$('editor').close();location.replace('sign-in.html');}
+async function logout(){await dataClient.auth.signOut({scope:'local'});auth=null;companyId=null;caseId=null;companies=[];overview={cases:[],batches:[]};sessionStorage.removeItem('ekwo-lustre-session');$('workspace').hidden=true;$('sign-out').hidden=true;$('content').replaceChildren();$('company-options').replaceChildren();$('side-menu').replaceChildren();$('company-name').textContent='Choose a company';$('editor').close();location.replace('sign-in.html');}
 $('sign-out').onclick=logout;
 function flag(code){return /^[A-Z]{2}$/.test(code||'')?String.fromCodePoint(...[...code].map(c=>127397+c.charCodeAt(0))):'';}
 function companyPicker(){const selected=companies.find(c=>c.id===companyId);$('company-name').textContent=selected?.name||'Choose a company';$('company-toggle').title=selected?.name||'Choose a company';$('company-options').innerHTML=companies.map(c=>`<button class="company-option" data-company="${esc(c.id)}" ${c.id===companyId?'aria-current="true"':''}><span class="tick">${c.id===companyId?'&#10003;':''}</span><span class="name">${esc(c.name)}</span><span class="country" title="${esc(c.country)}">${esc(new Intl.DisplayNames(['en'],{type:'region'}).of(c.country))}</span></button>`).join('');$('company-options').querySelectorAll('button').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));}
@@ -69,7 +71,7 @@ const box='M4 5h16v15H4z M4 10h16 M9 10v10';
 function sidebar(){const groups=[['Day to day',[['Overview','','M3 11 12 3l9 8 M5 10v11h14V10'],['Sales','sales',box],['Purchases','purchases',box],['Bank','bank','M3 9h18L12 3z M5 9v11m7-11v11m7-11v11M3 21h18'],['Contacts','contacts','M8 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 21v-3a8 8 0 0 1 16 0v3']]],['Accounting',[['Matching','matching',box],['Statements','statements',box],['Year end','year-end',box],['Chart of accounts','accounts',box],['Import','import',box]]],['Practitioner',[['Cases','cases',box],['Forecast','forecast',box]]],['CFO',[['Cockpit','cockpit',box],['Products','products',box]]]];
  $('side-menu').innerHTML=groups.map(([name,items])=>`<div class="nav-group">${name}</div>`+items.map(([label,path,glyph])=>['cases','forecast'].includes(path)?`<a href="#${path}" ${((workspaceKind==='forecast')===(path==='forecast'))?'class="active" aria-current="page"':''} id="${path}-nav">${path==='cases'?'<img class="nav-icon" src="poppy.svg" alt="">':'<img class="nav-icon" src="poppy-seedpod.svg" alt="">'}<span class="nav-label">${label}</span></a>`:`<a href="${nativeUrl(path)}" target="_blank" rel="noopener" ${companyId?'':'aria-disabled="true"'}>${nativeIcon({'':'layout-dashboard',sales:'file-text',purchases:'shopping-bag',bank:'landmark',contacts:'book-user',matching:'link-2',statements:'scale','year-end':'calendar-check',accounts:'book-open',import:'upload',cockpit:'compass',products:'package'}[path])}<span class="nav-label">${label}</span></a>`).join('')).join('')+`<div class="nav-group"></div><a href="${nativeUrl('settings')}" target="_blank" rel="noopener" ${companyId?'':'aria-disabled="true"'}>${nativeIcon('settings')}<span class="nav-label">Settings</span></a>`;
  document.querySelectorAll('#side-menu a').forEach(a=>a.title=a.textContent.trim());for(const kind of ['case','forecast'])$(kind==='case'?'cases-nav':'forecast-nav').onclick=e=>{e.preventDefault();task(async()=>{workspaceKind=kind;caseId=null;eventReview=null;sidebar();await refresh();});};}
-async function start(){companies=await api('/rest/v1/companies?select=id,name,legal_name,country,currency_code,language&order=name',null,'GET');const stored=sessionStorage.getItem('ekwo-lustre-company:'+auth.user.id);companyId=companies.some(c=>c.id===stored)?stored:companies.length===1?companies[0].id:null;$('account-name').textContent=auth.user.email;$('workspace').hidden=false;$('sign-out').hidden=false;companyPicker();sidebar();await refresh();}
+async function start(){companies=await dataClient.companies();const stored=sessionStorage.getItem('ekwo-lustre-company:'+auth.user.id);companyId=companies.some(c=>c.id===stored)?stored:companies.length===1?companies[0].id:null;$('account-name').textContent=auth.user.email;$('workspace').hidden=false;$('sign-out').hidden=false;companyPicker();sidebar();await refresh();}
 async function selectCompany(id){if(!companies.some(c=>c.id===id))return;companyId=id;caseId=null;sessionStorage.setItem('ekwo-lustre-company:'+auth.user.id,id);closeCompanies();companyPicker();sidebar();await refresh();}
 function renderPlanningSession(){eventReview=null;caseId=null;overview={cases:[],batches:[]};$('breadcrumb').textContent='PLANNING';$('page-title').textContent='Planning session';$('page-actions').innerHTML=action('planning-takeover','Use planning here');$('content').innerHTML='<p>Planning is not active in this session. Taking over prevents other login sessions from using the planning ledger.</p>';$('planning-takeover').onclick=()=>task(async()=>{await rpc('planning_takeover',{});await refresh();});}
 async function refresh(){if(companyId){const access=await rpc('access',{p_company:companyId});planningAllowed=access.planning;sidebar();if(planningAllowed&&!access.planning_active){renderPlanningSession();return;}if(!planningAllowed){eventReview=null;caseId=null;overview={cases:[],batches:[]};$('cases-nav').querySelector('.nav-label').textContent='Reports';$('forecast-nav').hidden=true;await openReportRegister();return;}}if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_events',{p_company:companyId,p_scenario:eventReview.scenario.id});if(canReview(snapshot))Object.assign(eventReview,snapshot);else eventReview=null;}overview=companyId?await rpc('workspace',{p_company:companyId}):{cases:[],batches:[]};if(caseId){const c=overview.cases.find(c=>c.id===caseId);if(c)c.presentation=await rpc('case_presentation',{p_company:companyId,p_case:caseId});}if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
@@ -123,10 +125,15 @@ async function saveCasePresentation(c,level,view){
  finally{renderCase(c);const details=$('content').querySelector('details');if(details)details.open=!!expanded;}
 }
 async function addEvent(s){
- const company=companyId;const accounts=await api('/rest/v1/accounts?select=id,code,name&company_id=eq.'+encodeURIComponent(company)+'&order=code',null,'GET');
- openEventEditor({editor,accounts,entries:eventReview.entries,save:async data=>{
-  await rpc('event_create',{p_company:company,p_scenario:s.id,...data});
+ const company=companyId;const accounts=await dataClient.accounts(company);const rounding=await dataClient.rounding(company);
+ const pendingKey='ekwo-journal-pending:'+company+':'+s.id;
+ const request=sessionStorage.getItem(pendingKey)||crypto.randomUUID();
+ const recovery=JSON.parse(sessionStorage.getItem('ekwo-journal-draft:'+request)||'null');
+ openEventEditor({editor,accounts,decimals:rounding.decimals,entries:eventReview.entries,initial:recovery?.input,save:async data=>{
+  sessionStorage.setItem(pendingKey,request);
+  await planningRequest(dataClient.saveJournal(request,company,s.id,s.batch_id,data));
   eventReview.entries=await rpc('batch_entries',{p_company:company,p_batch:s.batch_id});
+  sessionStorage.removeItem(pendingKey);sessionStorage.removeItem('ekwo-journal-draft:'+request);
  }});
 }
 function assignEvent(s){
@@ -156,7 +163,7 @@ function downloadReport(report){
 async function openCaseDocument(c){
  const company=companyId,key='report-request:'+auth.user.id+':'+company+':'+c.id;
  const request=sessionStorage.getItem(key)||crypto.randomUUID();sessionStorage.setItem(key,request);
- const run=await api('/functions/v1/report-run',{company,case:c.id,request});
+ const run=await requestReport({company,case:c.id,request});
  const report=await rpc('report_get',{p_company:company,p_report:run.report_id});
  downloadReport(report);sessionStorage.removeItem(key);await refresh();
 }
@@ -169,7 +176,7 @@ async function openReportRegister(c=null){
  const company=companyId;let report=await rpc('report_get',{p_company:company,p_report:b.dataset.report});
  if(!report)throw Error('Report unavailable');
  if(report.status!=='complete'){
-  await api('/functions/v1/report-run',{company,report:report.id});
+  await requestReport({company,report:report.id});
   report=await rpc('report_get',{p_company:company,p_report:report.id});
  }
  downloadReport(report);
@@ -180,4 +187,5 @@ function editCase(c){editor(c?'Case details':'New case',`<label>Name<input name=
 function editScenario(c,s){editor(s?'Scenario details':'New scenario',`<label>Name<input name="name" required value="${esc(s?.name||'')}"></label><label>Status<select name="status">${statusOptions(s?.status||'Proposal')}</select></label><label>Scenario description<textarea name="description" rows="14">${esc(s?.description||'')}</textarea></label>`,async d=>{await rpc('scenario_details_save',{p_company:companyId,p_case:c.id,p_scenario:s?.id||null,p_name:d.get('name'),p_status:d.get('status'),p_description:d.get('description')});});}
 function copyScenario(c,s){editor('Copy scenario',`<label>Name<input name="name" required value="${esc(s.name+' - copy')}"></label><label>Copy as<select name="kind"><option value="alternative">Scenario</option><option value="reference">Reference batch</option></select></label>`,async d=>{await rpc('copy_batch',{p_company:companyId,p_batch:s.batch_id,p_name:d.get('name'),p_reference:d.get('kind')==='reference'});});}
 $('editor-form').onsubmit=e=>{e.preventDefault();planningTask(async()=>{await saveEditor(new FormData(e.target));$('editor').close();await refresh()})};$('close-editor').onclick=$('cancel-editor').onclick=()=>$('editor').close();
+const sessionResult=await dataClient.auth.getSession();auth=sessionResult.data.session;
 if(auth)start().catch(e=>{sessionStorage.setItem('ekwo-login-error',e.message);logout();});else location.replace('sign-in.html');

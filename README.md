@@ -1,3 +1,5 @@
+<!-- README.md -->
+
 # Ekwo — Lustre web interface
 
 [Open the application](https://pekka-28.github.io/ekwo/).
@@ -6,7 +8,21 @@ This repository contains only the static browser interface for Lustre scenario p
 
 The left menu adds Cases under Practitioner before CFO. Company selection queries the same authorised company fields as Ekwo Cloud, without embedded company identifiers or an exemplar allowlist. Cases and scenarios support creation, editing, copying, status editing in the scenario dialog and private selection. Status labels have no lifecycle constraints or accounting side effects. The accounting menu opens native Ekwo in another tab; Events provides an expandable scenario batch journal and T-account stream, plus draft capture and assignment for the active capture scenario; it has no date filters. Database schema routing applies saved scenario selections to native trial balance, general ledger and financial statements. Direct table readers remain on actuals; native Ekwo has no Lustre batch filter. API-key-only connections cannot own a planning session; use accounting-only keys for authoritative access. Accounting-only users receive authoritative live accounting and can open completed historical Reports; they cannot run or rebuild reports.
 
-GitHub Pages serves the files directly from `main`. No build, Node server, administrative key or database password is required. Sign in with your existing project account. The browser calls Supabase under that user's permissions; `config.js` contains only public connection configuration.
+GitHub Pages serves the checked-in files directly from `main`. Serving requires no Node server, administrative key or database password. Sign in with your existing project account. The browser calls Supabase under that user's permissions; `config.js` contains only public connection configuration.
+
+## Shared data-access client
+
+`src/data-client.ts` uses `@supabase/supabase-js` 2.116.0, the version recorded by the inspected Ekwo OS 0.13.0 checkout. Ekwo's `packages/core/src/client.ts` explicitly delegates table CRUD to Supabase; `EkwoClient` wraps accounting operations such as posting and reconciliation. The current companion workflow uses Lustre RPCs instead of those accounting methods, so it needs the shared Supabase layer, without an unused Ekwo core bundle. If native posting is added, use the matching EkwoClient method over this same authenticated connection.
+
+The SDK now owns password sign-in, session persistence, refresh, local-session sign-out, company/account queries, RPC transport and Edge Function invocation. The small adapter retains Lustre RPC names and report error messages. It uses the existing `ekwo-lustre-session` sessionStorage key and public project configuration; database permissions and planning-session checks still govern every request. The Ekwo Cloud application bundle is not loaded.
+
+Journal capture now uses Ekwo's native `entries` and `entry_lines` table interface through `src/journal.ts`, rather than `lustre_event_create`. The inspected EkwoClient has no manual draft-creation method; `postEntry` is for posting and is deliberately not called during capture. The header omits Batch identity: the database capture trigger supplies it. The optional `x-lustre-scenario` assertion is checked against current capture settings, permissions and session ownership by migration **027-native-journal-capture.sql**, which must be installed before publishing this client. The readiness check refuses writes on older installations. Cases, Scenarios and related private operations continue to use their Lustre RPCs; reporting is unchanged.
+
+Capture validates exact decimal strings using the company currency precision from Ekwo rounding_of, rather than assuming two decimal places. Migration 027 also checks ledger storage precision before inserting a header. The current installation stores ledger amounts and totals as numeric(16,2), so a three-decimal currency such as TND is explicitly refused until the native schema can retain it. It is never silently rounded to two places.
+
+A native save inserts the draft header, then inserts all lines in one bulk request. It is not one transaction across both requests: a failed line request can leave an empty draft. The entry and line identities and original form values are retained in sessionStorage so reopening Add event can resume the same save. Lost responses are reconciled by reading those identities. Retry does not post, duplicate or automatically delete the journal. If capture selection changes, restore the original capture context before retrying. Keep the tab/session storage until recovery is complete; server-side drafts remain if browser storage is cleared. Inspect the draft identified in an error before starting another. Original values are restored on reopening; changing a pending save is refused rather than silently replacing already committed content.
+
+After changing the strict TypeScript adapter, run `npm ci --ignore-scripts`, `npm run typecheck`, `npm test` and `npm run build:data`. Commit the generated `data-client.js` with its source and dependency lockfile so Pages can serve it directly. Dependency versions are pinned; update and test them deliberately against the target Ekwo deployment. `THIRD-PARTY-NOTICES.txt` contains the bundled dependency licences. Local mocked tests cover scoping, RPC errors, session compatibility and token refresh; they do not establish compatibility with a live deployment.
 
 Application records, database migrations, business documents and evaluation material are maintained separately. None is bundled here. The interface needs the Lustre RPC extension already installed on its configured database.
 
