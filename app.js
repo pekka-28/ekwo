@@ -100,17 +100,12 @@ function render(){rememberView();notice();$('breadcrumb').textContent=workspaceK
  const listedCases=overview.cases.filter(c=>(c.kind||'case')===workspaceKind);
  $('page-title').textContent=workspaceKind==='forecast'?'Forecast':'Cases';if(overview.can_write&&workspaceKind==='case'){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>planningTask(()=>editCase());}
  $('content').innerHTML=listedCases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${listedCases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===c.selected_scenario_id)?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:`<p class="empty">${workspaceKind==='forecast'?'No forecasts. A source budget is required.':'No cases.'}</p>`;
- if(workspaceKind==='case'){$('page-actions').insertAdjacentHTML('beforeend',action('treasury-example','Naledi Treasury example'));$('treasury-example').onclick=()=>task(treasuryExample);}
  $('content').querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>task(async()=>{caseId=b.dataset.case;await refresh()}));}
 function showTimeline(data,back){
  $('page-title').textContent=data.name+' — account time series';
- $('breadcrumb').textContent='PLANNING–'+data.case_type;
+ $('breadcrumb').textContent='PLANNING–'+(data.case_type==='Other'?'Project':data.case_type);
  $('page-actions').innerHTML=action('back-analysis','Back');$('back-analysis').onclick=back;
  renderCaseTimeline($('content'),data);
-}
-async function treasuryExample(){
- const response=await fetch('./examples/naledi-treasury.json');if(!response.ok)throw Error('Treasury example unavailable');
- showTimeline(await response.json(),()=>render());
 }
 function statusOptions(current){return [...new Set([...states,current])].filter(Boolean).map(s=>`<option ${s===current?'selected':''}>${esc(s)}</option>`).join('');}
 function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.presentation?.transactions||'journal';$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">'+(c.kind==='forecast'?'Forecast':'Cases')+'</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Report')+action('past-reports','Reports')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+(c.kind==='forecast'?'':action('new-scenario','New scenario')):'');$('clear-selection').onclick=()=>planningTask(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>planningTask(()=>editCase(c));if($('new-scenario'))$('new-scenario').onclick=()=>planningTask(()=>editScenario(c));}

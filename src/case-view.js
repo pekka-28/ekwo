@@ -8,7 +8,7 @@ var caseFields = [{
       column: "planning_purpose",
       label: "Case type",
       required: true,
-      options: ["Tax", "Treasury", "Investments", "Project", "Other"]
+      options: ["Tax", "Treasury", "Investments", "Project"]
     },
     { column: "notes", label: "Case description", multiline: true }
   ]
@@ -21,7 +21,7 @@ function openCaseEditor(options) {
   const record = {
     name: options.record.name ?? "",
     notes: options.record.notes ?? "",
-    planning_purpose: options.record.planning_purpose ?? "Tax"
+    planning_purpose: !options.record.planning_purpose || options.record.planning_purpose === "Other" ? "Project" : options.record.planning_purpose
   };
   document.getElementById("case-editor-title").textContent = options.record.id ? "Case details" : "New case";
   const cancel = () => {

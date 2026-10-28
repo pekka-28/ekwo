@@ -6,7 +6,7 @@ export const caseFields: Group[] = [{
   fields: [
     {column: 'name', label: 'Name', required: true},
     {column: 'planning_purpose', label: 'Case type', required: true,
-      options: ['Tax', 'Treasury', 'Investments', 'Project', 'Other']},
+      options: ['Tax', 'Treasury', 'Investments', 'Project']},
     {column: 'notes', label: 'Case description', multiline: true},
   ],
 }];
@@ -21,7 +21,8 @@ export function openCaseEditor(options: {
   const close = document.getElementById('case-editor-close') as HTMLButtonElement;
   let saving = false;
   const record = {name: options.record.name ?? '', notes: options.record.notes ?? '',
-    planning_purpose: options.record.planning_purpose ?? 'Tax'};
+    planning_purpose: !options.record.planning_purpose || options.record.planning_purpose === 'Other'
+      ? 'Project' : options.record.planning_purpose};
   document.getElementById('case-editor-title')!.textContent = options.record.id ? 'Case details' : 'New case';
   const cancel = () => {if (!saving) dialog.close();};
   close.onclick = cancel;

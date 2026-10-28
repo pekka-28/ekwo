@@ -56,7 +56,7 @@ function fit(select) {
 }
 function renderCaseTimeline(host, data) {
   host.replaceChildren();
-  host.append(element("p", `${data.case_type} \xB7 ${data.currency} \xB7 ${data.from ?? "No dated entries"} \u2014 ${data.through ?? "No dated entries"}`));
+  host.append(element("p", `${data.case_type === "Other" ? "Project" : data.case_type} \xB7 ${data.currency} \xB7 ${data.from ?? "No dated entries"} \u2014 ${data.through ?? "No dated entries"}`));
   const basis = element("p", data.basis);
   host.append(basis);
   if (data.assumptions?.length) {
