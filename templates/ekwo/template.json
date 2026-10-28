@@ -1,6 +1,6 @@
 {
   "name": "Ekwo interface template",
-  "version": 1,
+  "version": 2,
   "source": {
     "at": "2026-10-18T00:41:37.191Z",
     "page": "https://cloud.ekwo.ai/",
@@ -15,13 +15,19 @@
       "CONTENT",
       "DIALOGS",
       "ACCOUNT_LINKS",
-      "APP_SCRIPTS"
+      "APP_SCRIPTS",
+      "BRAND",
+      "MARK"
     ],
     "landing": [
       "TITLE",
       "CSP",
       "LOGIN_FORM",
-      "APP_SCRIPTS"
+      "APP_SCRIPTS",
+      "BRAND",
+      "MARK",
+      "APP_STYLES",
+      "LOGIN_LOGO"
     ]
   },
   "responsibilities": [

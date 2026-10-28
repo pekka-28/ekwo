@@ -28,6 +28,24 @@ Application records, database migrations, business documents and evaluation mate
 
 The visual treatment follows Ekwo Cloud's cobalt/gold palette, Inter text, Fraunces headings and rounded controls. The bundled fonts retain their SIL Open Font Licences in `fonts/`. The application supports light and dark themes.
 
+## Lustre visual identity and native differences
+
+The current trial uses the captured native Ekwo grouped editor for **New case** and **Case details**, through the adapter in `src/case-view.ts`. It retains the existing dialog size, long description area, workspace tables and Scenario actions. Create, read and update use existing Lustre operations; deletion is unavailable because there is no Case-delete contract. Native validation and save errors appear inside the editor; a changed planning context refuses the write and retains entered text.
+
+Planning is now a native expanding menu group. Its entries are registered as a sub-application in the captured route/group data and rendered with the native expansion and capability filtering functions. The surrounding companion sidebar is retained. Accounting-only users receive Reports in that group. This does not modify the hosted Ekwo Cloud site. The pinned build, exposed internal functions and current limitations are described in [the runtime notes](vendor/ekwo/README.md).
+
+Lustre pages use the **Lustre** logotype in Fraunces, with a blue poppy leaf. The maintained vector `lustre-leaf.svg` has an upright stem, irregular paired lobes, a pointed terminal lobe, a dark blue midrib and pale blue lateral veins. It is a stylised leaf rather than the native Ekwo leaf outline. The sign-in page displays the larger 96 × 112 logo; navigation uses a 28 × 32 mark and the browser tab uses the same SVG. The logo stays blue in both appearance palettes and day/night themes.
+
+The extended sidebar groups Lustre functions under **Planning**, replacing the former **Practitioner** heading. Cases and Forecast remain its two planning destinations; accounting-only access presents Reports in the same group. Case, Scenario, event-capture and document actions remain within those destinations. Day to day, Accounting and CFO retain their existing links to native destinations. The current live Cloud menu is capability-dependent and differs from the older companion snapshot: it places Products under Day to day and collapses Accounting and CFO. Those native-menu differences remain review findings, not claims of complete visual parity.
+
+The graphical differences from the native presentation are:
+
+- Cases uses the blue poppy-flower icon (`poppy.svg`); Forecast uses the blue seedpod (`poppy-seedpod.svg`). These identify the two planning workspaces and are distinct from the leaf identity mark.
+- Scenario selection, capture controls, status and health indications, and the Summary–Detail and Journal–T-accounts switches belong to Lustre. The orange partial-view boundary identifies an incomplete transaction view; it is not native navigation or a posting status.
+- The Lustre logotype, leaf and Planning heading identify the extension. Inter body text, Fraunces headings, native colour tokens, rounded controls, sidebar folding, mobile drawer and appearance controls retain the shared Ekwo treatment.
+
+`ui/build.json` supplies the identity through template slots; `lustre-brand.css` contains the application-specific identity styling. The native stylesheet remains the captured reference. Generated pages must be rebuilt with `node tools/build-ui.mjs` and checked with `--check` so template regeneration preserves these differences. The shared template's metadata lists the identity slots.
+
 ## Reusable interface template
 
 `templates/ekwo` contains the shared landing page and application shell, native stylesheet, fonts, icon definitions, sidebar behaviour and account-menu controls. `template.json` records its source, slots and integration contract. It contains no Supabase project, credentials, companies, Cases or Scenarios. The published native page supplied the landing markup and styling; the authenticated shell follows its published component structure. This is a companion template, not the unpublished Ekwo Cloud source project. Asset licence notices are retained beside the template.

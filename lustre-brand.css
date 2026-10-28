@@ -1,0 +1,47 @@
+/* lustre-brand.css */
+.lustre-logotype {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.lustre-logotype img {
+  width: 28px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.lustre-logo-large {
+  display: block;
+  width: 96px;
+  height: 112px;
+  margin: 0 0 24px;
+}
+
+/* Keep the established Case dialog size around the native field renderer. */
+#case-editor {
+  max-width: 1000px;
+  width: calc(100% - 40px);
+}
+
+#case-editor textarea {
+  min-height: 320px;
+  line-height: 1.6;
+}
+
+#case-editor button[type="submit"] {
+  background: var(--color-brand-solid);
+  border-color: var(--color-brand-solid);
+  color: var(--color-brand-on);
+}
+
+#case-editor button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -3,6 +3,8 @@ import {scenarioName,canReview,summaryMarkup} from './scenario-summary.js?v=data
 import {displayDate} from './format.js?v=database-presentation-v1';
 import {openEventEditor} from './event-editor.js';
 import {nativeIcon} from './icons.js';
+import {openCaseEditor} from './src/case-view.js';
+import {registerApplication,mountMenu,unmount} from './ekwo-view-runtime.js';
 ﻿import {config} from './config.js';
 import {createDataClient} from './data-client.js';
 const dataClient=createDataClient(config.url,config.publishableKey,sessionStorage);
@@ -44,12 +46,12 @@ function contextKey(workspace,presentation){
 }
 async function checkPlanningContext(){
  if(!companyId||!planningAllowed)return true;
- if(editorContextChanged&&$('editor').open)throw Error('Planning settings changed. Close and reopen this editor before saving; your text is retained here.');
+ if(editorContextChanged&&($('editor').open||$('case-editor').open))throw Error('Planning settings changed. Close and reopen this editor before saving; your text is retained here.');
  const previous=contextKey(overview,overview.cases.find(c=>c.id===caseId)?.presentation);
  const current=await rpc('workspace',{p_company:companyId});
  const presentation=caseId?await rpc('case_presentation',{p_company:companyId,p_case:caseId}):null;
  if(previous===contextKey(current,presentation))return true;
- if($('editor').open)editorContextChanged=true;
+ if($('editor').open||$('case-editor').open)editorContextChanged=true;
  await refresh();
  const message='Planning settings changed in another session. The view has been refreshed; the action was not performed. Review the settings and try again.';
  if($('editor').open)$('editor-error').textContent=message+' Close and reopen this editor before saving; your text is retained here.';
@@ -68,13 +70,29 @@ document.addEventListener('click',e=>{if(!e.target.closest('.company-switch'))cl
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCompanies();if(e.target.matches('.company-option')&&['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();const bs=[...$('company-options').querySelectorAll('button')],i=bs.indexOf(e.target);bs[(i+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length]?.focus();}});
 const icon=path=>`<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${path}"/></svg>`;
 const box='M4 5h16v15H4z M4 10h16 M9 10v10';
-function sidebar(){const groups=[['Day to day',[['Overview','','M3 11 12 3l9 8 M5 10v11h14V10'],['Sales','sales',box],['Purchases','purchases',box],['Bank','bank','M3 9h18L12 3z M5 9v11m7-11v11m7-11v11M3 21h18'],['Contacts','contacts','M8 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 21v-3a8 8 0 0 1 16 0v3']]],['Accounting',[['Matching','matching',box],['Statements','statements',box],['Year end','year-end',box],['Chart of accounts','accounts',box],['Import','import',box]]],['Practitioner',[['Cases','cases',box],['Forecast','forecast',box]]],['CFO',[['Cockpit','cockpit',box],['Products','products',box]]]];
+function sidebar(){if($('planning-menu'))unmount($('planning-menu'));const groups=[['Day to day',[['Overview','','M3 11 12 3l9 8 M5 10v11h14V10'],['Sales','sales',box],['Purchases','purchases',box],['Bank','bank','M3 9h18L12 3z M5 9v11m7-11v11m7-11v11M3 21h18'],['Contacts','contacts','M8 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M4 21v-3a8 8 0 0 1 16 0v3']]],['Accounting',[['Matching','matching',box],['Statements','statements',box],['Year end','year-end',box],['Chart of accounts','accounts',box],['Import','import',box]]],['CFO',[['Cockpit','cockpit',box],['Products','products',box]]]];
  $('side-menu').innerHTML=groups.map(([name,items])=>`<div class="nav-group">${name}</div>`+items.map(([label,path,glyph])=>['cases','forecast'].includes(path)?`<a href="#${path}" ${((workspaceKind==='forecast')===(path==='forecast'))?'class="active" aria-current="page"':''} id="${path}-nav">${path==='cases'?'<img class="nav-icon" src="poppy.svg" alt="">':'<img class="nav-icon" src="poppy-seedpod.svg" alt="">'}<span class="nav-label">${label}</span></a>`:`<a href="${nativeUrl(path)}" target="_blank" rel="noopener" ${companyId?'':'aria-disabled="true"'}>${nativeIcon({'':'layout-dashboard',sales:'file-text',purchases:'shopping-bag',bank:'landmark',contacts:'book-user',matching:'link-2',statements:'scale','year-end':'calendar-check',accounts:'book-open',import:'upload',cockpit:'compass',products:'package'}[path])}<span class="nav-label">${label}</span></a>`).join('')).join('')+`<div class="nav-group"></div><a href="${nativeUrl('settings')}" target="_blank" rel="noopener" ${companyId?'':'aria-disabled="true"'}>${nativeIcon('settings')}<span class="nav-label">Settings</span></a>`;
- document.querySelectorAll('#side-menu a').forEach(a=>a.title=a.textContent.trim());for(const kind of ['case','forecast'])$(kind==='case'?'cases-nav':'forecast-nav').onclick=e=>{e.preventDefault();task(async()=>{workspaceKind=kind;caseId=null;eventReview=null;sidebar();await refresh();});};}
+
+document.querySelectorAll('#side-menu a').forEach(a=>a.title=a.textContent.trim());
+ const cfo=[...$('side-menu').querySelectorAll('.nav-group')].find(el=>el.textContent==='CFO');
+ const host=document.createElement('div');host.id='planning-menu';
+ $('side-menu').insertBefore(host,cfo||null);renderPlanningMenu();}
+function renderPlanningMenu(){
+ const host=$('planning-menu');if(!host)return;
+ registerApplication({key:'planning',label:'Planning',order:25,entries:planningAllowed?
+  [{key:'cases',label:'Cases',href:'#cases',icon:'poppy.svg',needs:'planning'},
+   {key:'forecast',label:'Forecast',href:'#forecast',icon:'poppy-seedpod.svg',needs:'planning'}]:
+  [{key:'cases',label:'Reports',href:'#cases',icon:'poppy.svg'}]});
+ mountMenu(host,{application:'planning',companyId,current:'planning-'+(workspaceKind==='forecast'&&planningAllowed?'forecast':'cases'),
+  capabilities:planningAllowed?['planning']:[],folded:document.documentElement.dataset.folded==='true'&&innerWidth>=768,
+  onNavigate:key=>task(async()=>{workspaceKind=key==='forecast'?'forecast':'case';caseId=null;eventReview=null;sidebar();await refresh();})});
+}
+new MutationObserver(renderPlanningMenu).observe(document.documentElement,{attributes:true,attributeFilter:['data-folded','data-menu-open']});
+window.addEventListener('resize',renderPlanningMenu);
 async function start(){companies=await dataClient.companies();const stored=sessionStorage.getItem('ekwo-lustre-company:'+auth.user.id);companyId=companies.some(c=>c.id===stored)?stored:companies.length===1?companies[0].id:null;$('account-name').textContent=auth.user.email;$('workspace').hidden=false;$('sign-out').hidden=false;companyPicker();sidebar();await refresh();}
 async function selectCompany(id){if(!companies.some(c=>c.id===id))return;companyId=id;caseId=null;sessionStorage.setItem('ekwo-lustre-company:'+auth.user.id,id);closeCompanies();companyPicker();sidebar();await refresh();}
 function renderPlanningSession(){eventReview=null;caseId=null;overview={cases:[],batches:[]};$('breadcrumb').textContent='PLANNING';$('page-title').textContent='Planning session';$('page-actions').innerHTML=action('planning-takeover','Use planning here');$('content').innerHTML='<p>Planning is not active in this session. Taking over prevents other login sessions from using the planning ledger.</p>';$('planning-takeover').onclick=()=>task(async()=>{await rpc('planning_takeover',{});await refresh();});}
-async function refresh(){if(companyId){const access=await rpc('access',{p_company:companyId});planningAllowed=access.planning;sidebar();if(planningAllowed&&!access.planning_active){renderPlanningSession();return;}if(!planningAllowed){eventReview=null;caseId=null;overview={cases:[],batches:[]};$('cases-nav').querySelector('.nav-label').textContent='Reports';$('forecast-nav').hidden=true;await openReportRegister();return;}}if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_events',{p_company:companyId,p_scenario:eventReview.scenario.id});if(canReview(snapshot))Object.assign(eventReview,snapshot);else eventReview=null;}overview=companyId?await rpc('workspace',{p_company:companyId}):{cases:[],batches:[]};if(caseId){const c=overview.cases.find(c=>c.id===caseId);if(c)c.presentation=await rpc('case_presentation',{p_company:companyId,p_case:caseId});}if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
+async function refresh(){if(companyId){const access=await rpc('access',{p_company:companyId});planningAllowed=access.planning;sidebar();if(planningAllowed&&!access.planning_active){renderPlanningSession();return;}if(!planningAllowed){eventReview=null;caseId=null;overview={cases:[],batches:[]};await openReportRegister();return;}}if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_events',{p_company:companyId,p_scenario:eventReview.scenario.id});if(canReview(snapshot))Object.assign(eventReview,snapshot);else eventReview=null;}overview=companyId?await rpc('workspace',{p_company:companyId}):{cases:[],batches:[]};if(caseId){const c=overview.cases.find(c=>c.id===caseId);if(c)c.presentation=await rpc('case_presentation',{p_company:companyId,p_case:caseId});}if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
 function action(id,label){return `<button id="${id}">${label}</button>`;}
 function render(){rememberView();notice();$('breadcrumb').textContent=workspaceKind==='forecast'?'FORECAST':'CASES';$('page-actions').innerHTML='';if(!companyId){$('page-title').textContent='Companies';$('content').innerHTML=companies.length?`<div class="company-grid">${companies.map(c=>`<button class="company-card" data-company="${c.id}"><strong>${esc(c.name)}</strong><span class="country">${flag(c.country)} ${esc(c.country)}</span></button>`).join('')}</div>`:'<p class="empty">No companies.</p>';$('content').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>task(()=>selectCompany(b.dataset.company)));return;}
  const selectedCase=overview.cases.find(c=>c.id===caseId);if(selectedCase){if(eventReview?.company===companyId&&eventReview?.case===caseId){const current=selectedCase.scenarios.find(s=>s.id===eventReview.scenario.id);if(current){eventReview.scenario=current;eventLevel=selectedCase.presentation?.level||'summary';eventMode=selectedCase.presentation?.transactions||'journal';return renderEvents(selectedCase);}eventReview=null;}return renderCase(selectedCase);}eventReview=null;
@@ -183,7 +201,17 @@ async function openReportRegister(c=null){
 }));
 }
 function editor(title,fields,save){editorContextChanged=false;$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
-function editCase(c){editor(c?'Case details':'New case',`<label>Name<input name="name" required value="${esc(c?.name||'')}"></label><label>Case description<textarea name="notes" rows="14">${esc(c?.notes||'')}</textarea></label>`,async d=>{caseId=await rpc('case_save',{p_company:companyId,p_case:c?.id||null,p_name:d.get('name'),p_notes:d.get('notes')});});}
+async function editCase(c){
+ const company=companyId;editorContextChanged=false;
+ openCaseEditor({record:c||{},save:async record=>{
+  if(busy)throw Error('Another operation is in progress. Try again.');
+  busy=true;document.body.setAttribute('aria-busy','true');
+  try{
+   if(companyId!==company||!await checkPlanningContext())throw Error('Planning settings changed. Close and reopen Case details; your text is retained.');
+   caseId=await rpc('case_save',{p_company:company,p_case:c?.id||null,p_name:record.name,p_notes:record.notes});
+  }finally{busy=false;document.body.removeAttribute('aria-busy');}
+ },afterSave:()=>task(()=>refresh())});
+}
 function editScenario(c,s){editor(s?'Scenario details':'New scenario',`<label>Name<input name="name" required value="${esc(s?.name||'')}"></label><label>Status<select name="status">${statusOptions(s?.status||'Proposal')}</select></label><label>Scenario description<textarea name="description" rows="14">${esc(s?.description||'')}</textarea></label>`,async d=>{await rpc('scenario_details_save',{p_company:companyId,p_case:c.id,p_scenario:s?.id||null,p_name:d.get('name'),p_status:d.get('status'),p_description:d.get('description')});});}
 function copyScenario(c,s){editor('Copy scenario',`<label>Name<input name="name" required value="${esc(s.name+' - copy')}"></label><label>Copy as<select name="kind"><option value="alternative">Scenario</option><option value="reference">Reference batch</option></select></label>`,async d=>{await rpc('copy_batch',{p_company:companyId,p_batch:s.batch_id,p_name:d.get('name'),p_reference:d.get('kind')==='reference'});});}
 $('editor-form').onsubmit=e=>{e.preventDefault();planningTask(async()=>{await saveEditor(new FormData(e.target));$('editor').close();await refresh()})};$('close-editor').onclick=$('cancel-editor').onclick=()=>$('editor').close();

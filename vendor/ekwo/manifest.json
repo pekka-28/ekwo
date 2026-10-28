@@ -1,0 +1,9 @@
+{
+  "source": "https://cloud.ekwo.ai/assets/index-CZM5CkXM.js",
+  "captured": "2026-10-28",
+  "sha256": "13e68ea67cc2ecaadff6b5c1df627c38ea12ab96a593577c2a37c61a9b0ec578",
+  "status": "Experimental internal interface; not an Ekwo-supported package",
+  "exports": ["mountEditor", "registerApplication", "mountMenu", "unmount"],
+  "bootstrap": "Cloud account initialisation and root rendering removed; renderer bodies preserved",
+  "menu": "Native ES route registry, DS group data, QF construction, rI capability filter, gR expansion and TR links"
+}

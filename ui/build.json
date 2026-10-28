@@ -1,11 +1,15 @@
 {
-  "title": "Ekwo",
+  "title": "Lustre",
   "csp": "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; connect-src 'self' https:; font-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'self'; form-action 'self'\">",
-  "styles": "<link rel=\"stylesheet\" href=\"cases.css\"><link rel=\"stylesheet\" href=\"case-document.css\">",
+  "styles": "<link rel=\"stylesheet\" href=\"cases.css\"><link rel=\"stylesheet\" href=\"case-document.css\"><link rel=\"stylesheet\" href=\"lustre-brand.css\">",
   "accountLinks": "<a href=\"guide.html\">User guide</a>",
   "scripts": "<script type=\"module\" src=\"app.js?v=planning-settings-v1\"></script>",
   "loginScripts": "<script type=\"module\" src=\"sign-in.js\"></script>",
   "contentFile": "ui/workspace.html",
   "dialogsFile": "ui/dialogs.html",
-  "loginFormFile": "ui/sign-in-form.html"
+  "loginFormFile": "ui/sign-in-form.html",
+  "brand": "<a href=\"./\" class=\"brand lustre-logotype\"><img src=\"lustre-leaf.svg\" width=\"28\" height=\"32\" alt=\"\"><span>Lustre</span></a>",
+  "mark": "lustre-leaf.svg",
+  "loginLogo": "<img class=\"lustre-logo-large\" src=\"lustre-leaf.svg\" width=\"96\" height=\"112\" alt=\"Blue poppy leaf\">",
+  "loginStyles": "<link rel=\"stylesheet\" href=\"lustre-brand.css\">"
 }

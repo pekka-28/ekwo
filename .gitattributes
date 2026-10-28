@@ -1,0 +1,4 @@
+# Preserve the byte-pinned upstream capture on every checkout.
+vendor/ekwo/cloud-captured.js -text
+vendor/ekwo/cloud.css -text
+ekwo-view-runtime.js -text
