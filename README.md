@@ -62,6 +62,12 @@ Planning requires the login session recorded in user_preferences.planning_sessio
 
 Tabs within the owning login intentionally share settings. Before planning actions the UI checks Case/Forecast selection, capture Case and Case presentation. A stale view refreshes and displays an error without executing the action. Review the settings and retry. Open editors retain text but require reopening before saving. There is no polling or per-tab isolation.
 
+## Password recovery
+
+`reset-password.html` sends a Supabase recovery email with an explicit redirect back to itself and accepts the returned recovery session to set a new password. It uses a separate in-memory Auth session and does not take Planning ownership or replace the browser's Planning storage. Build with `npm run build:recovery`.
+
+In Supabase Authentication → URL Configuration, add `https://pekka-28.github.io/ekwo/reset-password.html` to Redirect URLs, preserving existing entries. Then request a fresh recovery email from the published page. If using the dashboard's Send password recovery action instead, its default Site URL must also be this recovery page. Existing emails retain their old redirect. No administrative key or password is included in the browser assets.
+
 ## Treasury analysis
 
 New Case and Case details use the native editor to select Tax, Treasury, Investments, Project or Other. Account time series renders each Scenario over the union of their dates, with an account selector, Scenario visibility controls and a matching balance table. Switch between Case alone and selected Forecast/context, or add cumulative finance costs on the right axis. The configured backend includes typed Cases and analysis, with company-scoped selection validation. No specialised wizard is added.
