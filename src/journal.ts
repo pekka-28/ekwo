@@ -30,8 +30,9 @@ function validate(input: JournalInput, decimals:number) {
 // Ekwo's manual draft primitives are native table writes. The client library's
 // postEntry operation is deliberately NOT called: capture must remain a draft.
 export async function saveJournalDraft(db: SupabaseClient, storage: Storage,
-  request: string, company: string, scenario: string, batch: string, input: JournalInput): Promise<string> {
-  const rounding=await db.rpc('rounding_of',{p_company_id:company});
+  request: string, company: string, scenario: string, batch: string, input: JournalInput,
+  native: Pick<SupabaseClient, 'from' | 'rpc'> = db): Promise<string> {
+  const rounding=await native.rpc('rounding_of',{p_company_id:company});
   if(rounding.error)throw new Error(rounding.error.message);
   const decimals:number=(Array.isArray(rounding.data)?rounding.data[0]:rounding.data)?.decimals;
   validate(input,decimals);
@@ -50,15 +51,15 @@ export async function saveJournalDraft(db: SupabaseClient, storage: Storage,
   // guards to native writes, not another journal-creation routine.
   if(await checked(db.rpc('lustre_native_journal_ready'))!==true)throw new Error('Native journal capture is not installed.');
   storage.setItem(key,JSON.stringify(attempt));
-  const readHeader=()=>checked(db.from('entries').select('id,company_id,state,entry_date,description,reference,currency_code,lustre_batch_id,lustre_origin_entry_id')
+  const readHeader=()=>checked(native.from('entries').select('id,company_id,state,entry_date,description,reference,currency_code,lustre_batch_id,lustre_origin_entry_id')
     .eq('company_id',company).eq('id',request).maybeSingle());
   let entry=await readHeader();
   if(!entry){
-    const co=await checked(db.from('companies').select('miscellaneous_journal_id,currency_code').eq('id',company).single());
+    const co=await checked(native.from('companies').select('miscellaneous_journal_id,currency_code').eq('id',company).single());
     if(!co?.miscellaneous_journal_id)throw new Error('Company miscellaneous journal is not configured.');
-    const year=await checked(db.from('fiscal_years').select('id').eq('company_id',company).lte('start_date',input.p_date).gte('end_date',input.p_date).single());
+    const year=await checked(native.from('fiscal_years').select('id').eq('company_id',company).lte('start_date',input.p_date).gte('end_date',input.p_date).single());
     if(!year)throw new Error('Create an accounting period covering this date first.');
-    const result=await db.from('entries').insert({id:request,company_id:company,journal_id:co.miscellaneous_journal_id,
+    const result=await native.from('entries').insert({id:request,company_id:company,journal_id:co.miscellaneous_journal_id,
       fiscal_year_id:year.id,currency_code:co.currency_code,state:'draft',entry_date:input.p_date,
       description:input.p_description.trim(),reference:input.p_reference.trim()||null,lustre_origin_entry_id:input.p_source})
       .setHeader('x-lustre-scenario',scenario);
@@ -70,7 +71,7 @@ export async function saveJournalDraft(db: SupabaseClient, storage: Storage,
   if(!entry || entry.state!=='draft' || entry.lustre_batch_id!==batch || entry.entry_date!==input.p_date ||
     entry.description!==input.p_description.trim() || (entry.reference??'')!==input.p_reference.trim() ||
     (entry.lustre_origin_entry_id??null)!==input.p_source)throw new Error('Draft identity, capture destination or content changed. Inspect draft '+request);
-  const readLines=async()=>await checked(db.from('entry_lines').select('id,account_id,sequence,name,debit::text,credit::text').eq('company_id',company).eq('entry_id',request).order('sequence'))??[];
+  const readLines=async()=>await checked(native.from('entry_lines').select('id,account_id,sequence,name,debit::text,credit::text').eq('company_id',company).eq('entry_id',request).order('sequence'))??[];
   const matches=(rows:Record<string,unknown>[])=>rows.length===input.p_lines.length&&rows.every((row,index)=>{
     const line=input.p_lines[index]!;
     return row.id===attempt.lineIds[index]&&row.account_id===line.account_id&&row.sequence===index+1&&
@@ -78,7 +79,7 @@ export async function saveJournalDraft(db: SupabaseClient, storage: Storage,
   });
   let lines=await readLines();
   if(!lines.length){
-    const result=await db.from('entry_lines').insert(input.p_lines.map((line,index)=>({...line,
+    const result=await native.from('entry_lines').insert(input.p_lines.map((line,index)=>({...line,
       id:attempt.lineIds[index],company_id:company,entry_id:request,sequence:index+1,currency_code:entry.currency_code})))
       .setHeader('x-lustre-scenario',scenario);
     lines=await readLines();

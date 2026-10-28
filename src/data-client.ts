@@ -15,16 +15,24 @@ export function createDataClient(url: string, key: string, storage: Storage, fet
     if (error) throw new Error(error.message);
     return data;
   }
+  let accounting: Promise<ReturnType<typeof db.schema>> | undefined;
+  const native = () => accounting ??= (async () => {
+    const moved = db.schema('ekwo');
+    const {data, error} = await moved.rpc('ekwo_schema_version');
+    if (!error && typeof data === 'string') return moved;
+    if (error && ['PGRST106', 'PGRST202'].includes(error.code)) return db.schema('public');
+    throw new Error(error?.message || 'Invalid accounting schema version response');
+  })().catch(error => { accounting = undefined; throw error; });
   return {
     auth: db.auth,
-    companies: () => value(db.from('companies').select('id,name,legal_name,country,currency_code,language').order('name')),
-    accounts: (company: string) => value(db.from('accounts').select('id,code,name').eq('company_id', company).order('code')),
+    companies: async () => value((await native()).from('companies').select('id,name,legal_name,country,currency_code,language').order('name')),
+    accounts: async (company: string) => value((await native()).from('accounts').select('id,code,name').eq('company_id', company).order('code')),
     rounding: async (company: string) => {
-      const data=await value(db.rpc('rounding_of',{p_company_id:company}));
+      const data=await value((await native()).rpc('rounding_of',{p_company_id:company}));
       return Array.isArray(data)?data[0]:data;
     },
-    saveJournal: (request:string, company:string, scenario:string, batch:string, input:JournalInput) =>
-      saveJournalDraft(db,storage,request,company,scenario,batch,input),
+    saveJournal: async (request:string, company:string, scenario:string, batch:string, input:JournalInput) =>
+      saveJournalDraft(db,storage,request,company,scenario,batch,input,await native()),
     rpc: (name: string, args: Record<string, unknown> = {}) => value(db.rpc('lustre_' + name, args)),
     async report(body: Record<string, unknown>) {
       const {data, error} = await db.functions.invoke('report-run', {body});

@@ -11,7 +11,7 @@ function memoryStorage(): Storage {
 test('SDK scopes reads, sends RPC arguments, and preserves database refusal',async()=>{
   const requests:{url:URL;init:RequestInit}[]=[];
   const fetcher:typeof fetch=async(input,init)=>{
-    const url=new URL(String(input));requests.push({url,init:init??{}});
+    const url=new URL(String(input));if(url.pathname.endsWith('ekwo_schema_version'))return new Response('"0.24.0"',{headers:{'Content-Type':'application/json'}});requests.push({url,init:init??{}});
     if(url.pathname.endsWith('lustre_denied'))return new Response(JSON.stringify({message:'Planning is not active in this session',code:'42501'}),{status:403,headers:{'Content-Type':'application/json'}});
     return new Response('[]',{headers:{'Content-Type':'application/json'}});
   };
@@ -21,8 +21,24 @@ test('SDK scopes reads, sends RPC arguments, and preserves database refusal',asy
   assert.equal(requests[1]?.url.searchParams.get('company_id'),'eq.company-123');
   assert.equal(requests[2]?.url.pathname,'/rest/v1/rpc/lustre_workspace');
   assert.deepEqual(JSON.parse(String(requests[2]?.init.body)),{p_company:'company-123'});
+  assert.equal(new Headers(requests[0]?.init.headers).get('Accept-Profile'),'ekwo');
+  assert.equal(new Headers(requests[2]?.init.headers).get('Content-Profile'),'public');
   await assert.rejects(client.rpc('denied'),/Planning is not active/);
   client.auth.stopAutoRefresh();
+});
+
+test('legacy schema fallback is limited to missing schema or marker, never permission refusal',async()=>{
+  for(const code of ['PGRST106','PGRST202','42501']){
+    const profiles:string[]=[];
+    const client=createDataClient('https://example.test','public-key',memoryStorage(),async(input,init)=>{
+      if(String(input).includes('ekwo_schema_version'))return new Response(JSON.stringify({code,message:'Schema probe refused'}),{status:code==='42501'?403:404,headers:{'Content-Type':'application/json'}});
+      profiles.push(new Headers(init?.headers).get('Accept-Profile')??'');
+      return new Response('[]',{headers:{'Content-Type':'application/json'}});
+    });
+    if(code==='42501'){await assert.rejects(client.companies(),/Schema probe refused/);assert.deepEqual(profiles,[]);}
+    else {await client.companies();assert.deepEqual(profiles,['public']);}
+    client.auth.stopAutoRefresh();
+  }
 });
 test('SDK accepts the existing stored session and signs out locally',async()=>{
   const storage=memoryStorage();
@@ -54,6 +70,7 @@ test('SDK refreshes an expired legacy session before a data request',async()=>{
       refreshes++;assert.equal(url.searchParams.get('grant_type'),'refresh_token');
       return new Response(JSON.stringify({access_token:fresh,refresh_token:'next-refresh',expires_in:3600,token_type:'bearer',user:{id:'user-1'}}),{headers:{'Content-Type':'application/json'}});
     }
+    if(url.pathname.endsWith('ekwo_schema_version'))return new Response('"0.24.0"',{headers:{'Content-Type':'application/json'}});
     authorization=new Headers(init?.headers).get('Authorization')??'';
     return new Response('[]',{headers:{'Content-Type':'application/json'}});
   });

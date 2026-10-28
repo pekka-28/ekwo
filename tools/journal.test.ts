@@ -14,13 +14,14 @@ function fixture(){
  const paths:string[]=[];
  const response=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
  const client=createDataClient('https://example.test','public-key',storage,async(raw,init)=>{
-  const url=new URL(String(raw)),path=url.pathname.split('/').at(-1)!;paths.push(path);
+  const url=new URL(String(raw)),path=url.pathname.split('/').at(-1)!;if(path==='ekwo_schema_version')return response('0.24.0');paths.push(path);
   if(path==='rounding_of')return response([{decimals,method:'half_up'}]);
   if(path==='lustre_native_journal_ready')return response(ready);
   if(path==='companies')return response({miscellaneous_journal_id:'j1',currency_code:'ZAR'});
   if(path==='fiscal_years')return response({id:'y1'});
   if(path==='entries'){
    if(init?.method==='POST'){
+    assert.equal(new Headers(init.headers).get('Content-Profile'),'ekwo');
     assert.equal(new Headers(init.headers).get('x-lustre-scenario'),'s1');
     const body=JSON.parse(String(init.body));assert.equal(body.lustre_batch_id,undefined);assert.equal(body.state,'draft');
     if(stale)return response({message:'Capture destination changed'},403);
@@ -32,6 +33,7 @@ function fixture(){
   }
   if(path==='entry_lines'){
    if(init?.method==='POST'){
+    assert.equal(new Headers(init.headers).get('Content-Profile'),'ekwo');
     if(failLines)return response({message:'Line write refused'},403);
     lineWrites++;lines=JSON.parse(String(init.body));
     if(loseLines)return response({message:'Response lost after commit'},503);
