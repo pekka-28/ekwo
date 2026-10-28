@@ -1,0 +1,4519 @@
+{
+  "case_id": "naledi-treasury-example",
+  "name": "Naledi — funding the delivery kit",
+  "case_type": "Treasury",
+  "currency": "ZAR",
+  "from": "2026-11-01",
+  "through": "2029-11-01",
+  "basis_at": "2026-10-28",
+  "basis": "Synthetic Treasury example. The R120,000 kit and operating assumptions are identical in every alternative. No entries are saved or posted.",
+  "forecast_names": [
+    "Illustrative operating cash surplus"
+  ],
+  "finance_cost_accounts": [
+    "interest"
+  ],
+  "financing_scenarios": [
+    {
+      "id": "cash",
+      "name": "Use existing cash",
+      "status": "Proposal",
+      "is_applied": false,
+      "opening": {
+        "bank": "50000.00",
+        "capital": "-50000.00"
+      },
+      "movements": [
+        {
+          "date": "2026-11-01",
+          "account": "kit",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "-120000.00"
+        }
+      ]
+    },
+    {
+      "id": "senior",
+      "name": "Senior amortising loan",
+      "status": "Proposal",
+      "is_applied": false,
+      "opening": {
+        "bank": "50000.00",
+        "capital": "-50000.00"
+      },
+      "movements": [
+        {
+          "date": "2026-11-01",
+          "account": "kit",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "-120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "senior",
+          "amount": "-120000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-1183.56"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "interest",
+          "amount": "1183.56"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-1189.04"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "interest",
+          "amount": "1189.04"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-1155.07"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "interest",
+          "amount": "1155.07"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-1012.60"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "interest",
+          "amount": "1012.60"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-1087.12"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "interest",
+          "amount": "1087.12"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-1019.18"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "interest",
+          "amount": "1019.18"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-1019.18"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "interest",
+          "amount": "1019.18"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-953.42"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "interest",
+          "amount": "953.42"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-951.23"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "interest",
+          "amount": "951.23"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-917.26"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "interest",
+          "amount": "917.26"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-854.79"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "interest",
+          "amount": "854.79"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-849.32"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "interest",
+          "amount": "849.32"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-789.04"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "interest",
+          "amount": "789.04"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-781.37"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "interest",
+          "amount": "781.37"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-747.40"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "interest",
+          "amount": "747.40"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-667.40"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "interest",
+          "amount": "667.40"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-679.45"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "interest",
+          "amount": "679.45"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-624.66"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "interest",
+          "amount": "624.66"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-611.51"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "interest",
+          "amount": "611.51"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-558.90"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "interest",
+          "amount": "558.90"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-543.56"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "interest",
+          "amount": "543.56"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-509.59"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "interest",
+          "amount": "509.59"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-460.27"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "interest",
+          "amount": "460.27"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-441.64"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "interest",
+          "amount": "441.64"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-394.52"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "interest",
+          "amount": "394.52"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-373.70"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "interest",
+          "amount": "373.70"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-339.73"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "interest",
+          "amount": "339.73"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-276.17"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "interest",
+          "amount": "276.17"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-271.78"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "interest",
+          "amount": "271.78"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-230.14"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "interest",
+          "amount": "230.14"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-203.84"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "interest",
+          "amount": "203.84"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-164.38"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "interest",
+          "amount": "164.38"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-135.89"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "interest",
+          "amount": "135.89"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-101.92"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "interest",
+          "amount": "101.92"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-65.75"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "interest",
+          "amount": "65.75"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-33.97"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "interest",
+          "amount": "33.97"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-3333.45"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "senior",
+          "amount": "3333.45"
+        }
+      ]
+    },
+    {
+      "id": "mixed",
+      "name": "Senior plus junior bullet",
+      "status": "Proposal",
+      "is_applied": false,
+      "opening": {
+        "bank": "50000.00",
+        "capital": "-50000.00"
+      },
+      "movements": [
+        {
+          "date": "2026-11-01",
+          "account": "kit",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "-120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "90000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "senior",
+          "amount": "-90000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-887.67"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "interest",
+          "amount": "887.67"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-891.78"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "interest",
+          "amount": "891.78"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-866.30"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "interest",
+          "amount": "866.30"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-759.45"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "interest",
+          "amount": "759.45"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-815.34"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "interest",
+          "amount": "815.34"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-764.38"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "interest",
+          "amount": "764.38"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-764.38"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "interest",
+          "amount": "764.38"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-715.07"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "interest",
+          "amount": "715.07"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-713.42"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "interest",
+          "amount": "713.42"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-687.95"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "interest",
+          "amount": "687.95"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-641.10"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "interest",
+          "amount": "641.10"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-636.99"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "interest",
+          "amount": "636.99"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-591.78"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "interest",
+          "amount": "591.78"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-586.03"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "interest",
+          "amount": "586.03"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-560.55"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "interest",
+          "amount": "560.55"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-500.55"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "interest",
+          "amount": "500.55"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-509.59"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "interest",
+          "amount": "509.59"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-468.49"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "interest",
+          "amount": "468.49"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-419.18"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "interest",
+          "amount": "419.18"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-407.67"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "interest",
+          "amount": "407.67"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-382.19"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "interest",
+          "amount": "382.19"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-345.21"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "interest",
+          "amount": "345.21"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-331.23"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "interest",
+          "amount": "331.23"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-295.89"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "interest",
+          "amount": "295.89"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-280.27"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "interest",
+          "amount": "280.27"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-254.79"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "interest",
+          "amount": "254.79"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-207.12"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "interest",
+          "amount": "207.12"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-203.84"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "interest",
+          "amount": "203.84"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-172.60"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "interest",
+          "amount": "172.60"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-152.88"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "interest",
+          "amount": "152.88"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-123.29"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "interest",
+          "amount": "123.29"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-101.92"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "interest",
+          "amount": "101.92"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-76.44"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "interest",
+          "amount": "76.44"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-49.32"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "interest",
+          "amount": "49.32"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-25.48"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "interest",
+          "amount": "25.48"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "30000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "junior",
+          "amount": "-30000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-414.25"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "interest",
+          "amount": "414.25"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-30000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "junior",
+          "amount": "30000.00"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "id": "bank",
+      "code": "1000",
+      "name": "Project funding bank account"
+    },
+    {
+      "id": "kit",
+      "code": "1500",
+      "name": "Equipment — common kit purchase"
+    },
+    {
+      "id": "senior",
+      "code": "2100",
+      "name": "Senior borrowing"
+    },
+    {
+      "id": "junior",
+      "code": "2200",
+      "name": "Junior borrowing"
+    },
+    {
+      "id": "interest",
+      "code": "7000",
+      "name": "Interest expense"
+    },
+    {
+      "id": "operations",
+      "code": "4000",
+      "name": "Operating cash surplus — fixture"
+    },
+    {
+      "id": "capital",
+      "code": "3000",
+      "name": "Opening capital — fixture"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "cash",
+      "name": "Use existing cash",
+      "status": "Proposal",
+      "is_applied": false,
+      "opening": {
+        "bank": "50000.00",
+        "capital": "-50000.00"
+      },
+      "movements": [
+        {
+          "date": "2026-11-01",
+          "account": "kit",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "-120000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        }
+      ]
+    },
+    {
+      "id": "senior",
+      "name": "Senior amortising loan",
+      "status": "Proposal",
+      "is_applied": false,
+      "opening": {
+        "bank": "50000.00",
+        "capital": "-50000.00"
+      },
+      "movements": [
+        {
+          "date": "2026-11-01",
+          "account": "kit",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "-120000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "senior",
+          "amount": "-120000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-1183.56"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "interest",
+          "amount": "1183.56"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-1189.04"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "interest",
+          "amount": "1189.04"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-1155.07"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "interest",
+          "amount": "1155.07"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-1012.60"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "interest",
+          "amount": "1012.60"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-1087.12"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "interest",
+          "amount": "1087.12"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-1019.18"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "interest",
+          "amount": "1019.18"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-1019.18"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "interest",
+          "amount": "1019.18"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-953.42"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "interest",
+          "amount": "953.42"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-951.23"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "interest",
+          "amount": "951.23"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-917.26"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "interest",
+          "amount": "917.26"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-854.79"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "interest",
+          "amount": "854.79"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-849.32"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "interest",
+          "amount": "849.32"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-789.04"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "interest",
+          "amount": "789.04"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-781.37"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "interest",
+          "amount": "781.37"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-747.40"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "interest",
+          "amount": "747.40"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-667.40"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "interest",
+          "amount": "667.40"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-679.45"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "interest",
+          "amount": "679.45"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-624.66"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "interest",
+          "amount": "624.66"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-611.51"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "interest",
+          "amount": "611.51"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-558.90"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "interest",
+          "amount": "558.90"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-543.56"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "interest",
+          "amount": "543.56"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-509.59"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "interest",
+          "amount": "509.59"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-460.27"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "interest",
+          "amount": "460.27"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-441.64"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "interest",
+          "amount": "441.64"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-394.52"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "interest",
+          "amount": "394.52"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-373.70"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "interest",
+          "amount": "373.70"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-339.73"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "interest",
+          "amount": "339.73"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-276.17"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "interest",
+          "amount": "276.17"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-271.78"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "interest",
+          "amount": "271.78"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-230.14"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "interest",
+          "amount": "230.14"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-203.84"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "interest",
+          "amount": "203.84"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-164.38"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "interest",
+          "amount": "164.38"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-135.89"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "interest",
+          "amount": "135.89"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-101.92"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "interest",
+          "amount": "101.92"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-65.75"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "interest",
+          "amount": "65.75"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-3333.33"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "senior",
+          "amount": "3333.33"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-33.97"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "interest",
+          "amount": "33.97"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-3333.45"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "senior",
+          "amount": "3333.45"
+        }
+      ]
+    },
+    {
+      "id": "mixed",
+      "name": "Senior plus junior bullet",
+      "status": "Proposal",
+      "is_applied": false,
+      "opening": {
+        "bank": "50000.00",
+        "capital": "-50000.00"
+      },
+      "movements": [
+        {
+          "date": "2026-11-01",
+          "account": "kit",
+          "amount": "120000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "-120000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "5000.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "operations",
+          "amount": "-5000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "90000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "senior",
+          "amount": "-90000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-887.67"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "interest",
+          "amount": "887.67"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-891.78"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "interest",
+          "amount": "891.78"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-866.30"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "interest",
+          "amount": "866.30"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-759.45"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "interest",
+          "amount": "759.45"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-815.34"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "interest",
+          "amount": "815.34"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-764.38"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "interest",
+          "amount": "764.38"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-764.38"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "interest",
+          "amount": "764.38"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-715.07"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "interest",
+          "amount": "715.07"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-713.42"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "interest",
+          "amount": "713.42"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-687.95"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "interest",
+          "amount": "687.95"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-641.10"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "interest",
+          "amount": "641.10"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-636.99"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "interest",
+          "amount": "636.99"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-591.78"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "interest",
+          "amount": "591.78"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2027-12-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-586.03"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "interest",
+          "amount": "586.03"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-01-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-560.55"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "interest",
+          "amount": "560.55"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-02-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-500.55"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "interest",
+          "amount": "500.55"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-03-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-509.59"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "interest",
+          "amount": "509.59"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-04-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-468.49"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "interest",
+          "amount": "468.49"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-05-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-06-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-419.18"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "interest",
+          "amount": "419.18"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-07-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-407.67"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "interest",
+          "amount": "407.67"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-08-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-382.19"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "interest",
+          "amount": "382.19"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-09-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-345.21"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "interest",
+          "amount": "345.21"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-10-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-331.23"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "interest",
+          "amount": "331.23"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-11-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-295.89"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "interest",
+          "amount": "295.89"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2028-12-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-280.27"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "interest",
+          "amount": "280.27"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-01-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-254.79"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "interest",
+          "amount": "254.79"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-02-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-207.12"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "interest",
+          "amount": "207.12"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-03-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-203.84"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "interest",
+          "amount": "203.84"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-04-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-172.60"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "interest",
+          "amount": "172.60"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-05-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-152.88"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "interest",
+          "amount": "152.88"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-06-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-123.29"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "interest",
+          "amount": "123.29"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-07-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-101.92"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "interest",
+          "amount": "101.92"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-08-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-76.44"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "interest",
+          "amount": "76.44"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-09-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-49.32"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "interest",
+          "amount": "49.32"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-10-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-25.48"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "interest",
+          "amount": "25.48"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "bank",
+          "amount": "-2500.00"
+        },
+        {
+          "date": "2029-11-01",
+          "account": "senior",
+          "amount": "2500.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "bank",
+          "amount": "30000.00"
+        },
+        {
+          "date": "2026-11-01",
+          "account": "junior",
+          "amount": "-30000.00"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2026-12-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-01-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-02-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "bank",
+          "amount": "-414.25"
+        },
+        {
+          "date": "2027-03-01",
+          "account": "interest",
+          "amount": "414.25"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-04-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2027-05-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-06-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2027-07-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-08-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-09-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "bank",
+          "amount": "-443.84"
+        },
+        {
+          "date": "2027-10-01",
+          "account": "interest",
+          "amount": "443.84"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-458.63"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "interest",
+          "amount": "458.63"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "bank",
+          "amount": "-30000.00"
+        },
+        {
+          "date": "2027-11-01",
+          "account": "junior",
+          "amount": "30000.00"
+        }
+      ]
+    }
+  ],
+  "assumptions": [
+    "Opening funding-account cash R50,000 is a test assumption, not a balance established from Naledi’s incomplete history.",
+    "All alternatives acquire the same R120,000 kit on 1 November 2026. This is a Treasury funding comparison, not a different equipment choice.",
+    "Common operating cash surplus is R5,000 at each monthly payment date for 36 months. It is synthetic settled cash, not inferred receipts from historical revenue.",
+    "Senior debt: 12% fixed annual rate, 36 equal-principal monthly repayments. Mixed: R90,000 senior plus R30,000 junior at 18%, monthly interest and principal repaid at month 12.",
+    "ACT/365F, half-up rounding to cents, no fees, defaults, business-day adjustments, floating rates, VAT, tax or depreciation. These omissions must be resolved for advice.",
+    "Balances are end-of-day: same-date loan drawdown and kit payment net together; this does not establish intraday payment ordering.",
+    "All debt is repaid at the shared horizon. The cash-only alternative exposes an immediate R70,000 funding shortfall."
+  ],
+  "instruments": [
+    {
+      "id": "senior-full",
+      "name": "Senior amortising facility",
+      "currency": "ZAR",
+      "principalMinor": "12000000",
+      "annualRateBps": 1200,
+      "startDate": "2026-11-01",
+      "periods": 36,
+      "frequencyMonths": 1,
+      "repayment": "equal-principal",
+      "direction": "borrowing",
+      "dayCount": "ACT/365F"
+    },
+    {
+      "id": "senior-mixed",
+      "name": "Senior tranche",
+      "currency": "ZAR",
+      "principalMinor": "9000000",
+      "annualRateBps": 1200,
+      "startDate": "2026-11-01",
+      "periods": 36,
+      "frequencyMonths": 1,
+      "repayment": "equal-principal",
+      "direction": "borrowing",
+      "dayCount": "ACT/365F"
+    },
+    {
+      "id": "junior-mixed",
+      "name": "Junior bullet tranche",
+      "currency": "ZAR",
+      "principalMinor": "3000000",
+      "annualRateBps": 1800,
+      "startDate": "2026-11-01",
+      "periods": 12,
+      "frequencyMonths": 1,
+      "repayment": "bullet",
+      "direction": "borrowing",
+      "dayCount": "ACT/365F"
+    }
+  ]
+}

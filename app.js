@@ -4,12 +4,13 @@ import {displayDate} from './format.js?v=database-presentation-v1';
 import {openEventEditor} from './event-editor.js';
 import {nativeIcon} from './icons.js';
 import {openCaseEditor} from './src/case-view.js';
+import {renderCaseTimeline} from './src/case-timeline.js';
 import {registerApplication,mountMenu,unmount} from './ekwo-view-runtime.js';
 ﻿import {config} from './config.js';
 import {createDataClient} from './data-client.js';
 const dataClient=createDataClient(config.url,config.publishableKey,sessionStorage);
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const states=['Proposal','Reviewing','Accepted','Applied','Retired'];
+const states=['Proposal','Reviewing','Accepted','Retired'];
 let auth=null;
 dataClient.auth.onAuthStateChange((event,session)=>{auth=session;if(event==='SIGNED_OUT')location.replace('sign-in.html');});
 let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null,eventReview=null,eventMode='journal',eventLevel='summary',workspaceKind='case',planningAllowed=true;
@@ -99,7 +100,18 @@ function render(){rememberView();notice();$('breadcrumb').textContent=workspaceK
  const listedCases=overview.cases.filter(c=>(c.kind||'case')===workspaceKind);
  $('page-title').textContent=workspaceKind==='forecast'?'Forecast':'Cases';if(overview.can_write&&workspaceKind==='case'){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>planningTask(()=>editCase());}
  $('content').innerHTML=listedCases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${listedCases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===c.selected_scenario_id)?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:`<p class="empty">${workspaceKind==='forecast'?'No forecasts. A source budget is required.':'No cases.'}</p>`;
+ if(workspaceKind==='case'){$('page-actions').insertAdjacentHTML('beforeend',action('treasury-example','Naledi Treasury example'));$('treasury-example').onclick=()=>task(treasuryExample);}
  $('content').querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>task(async()=>{caseId=b.dataset.case;await refresh()}));}
+function showTimeline(data,back){
+ $('page-title').textContent=data.name+' — account time series';
+ $('breadcrumb').textContent='PLANNING–'+data.case_type;
+ $('page-actions').innerHTML=action('back-analysis','Back');$('back-analysis').onclick=back;
+ renderCaseTimeline($('content'),data);
+}
+async function treasuryExample(){
+ const response=await fetch('./examples/naledi-treasury.json');if(!response.ok)throw Error('Treasury example unavailable');
+ showTimeline(await response.json(),()=>render());
+}
 function statusOptions(current){return [...new Set([...states,current])].filter(Boolean).map(s=>`<option ${s===current?'selected':''}>${esc(s)}</option>`).join('');}
 function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.presentation?.transactions||'journal';$('page-title').textContent=c.name;$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">'+(c.kind==='forecast'?'Forecast':'Cases')+'</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Report')+action('past-reports','Reports')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+(c.kind==='forecast'?'':action('new-scenario','New scenario')):'');$('clear-selection').onclick=()=>planningTask(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>planningTask(()=>editCase(c));if($('new-scenario'))$('new-scenario').onclick=()=>planningTask(()=>editScenario(c));}
  $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${scenarioName(s)}</td><td><span class="state">${esc(s.status||'Proposal')}</span></td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${c.selected_scenario_id===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" ${canReview(s)?'':'disabled'} aria-label="Events for ${esc(s.name)}">${s.summary_entries?`${s.summary_entries}/`:""}${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}" ${!s.actions?.edit?'disabled title="Reported scenario: copy to edit"':''}>Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}" ${canReview(s)?'':'disabled'}>Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
@@ -108,6 +120,12 @@ function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.p
  $('case-view').onchange=e=>{const view=e.target.value;planningTask(()=>saveCasePresentation(c,eventLevel,view));};
  $('case-document').onclick=()=>planningTask(()=>openCaseDocument(c));$('past-reports').onclick=()=>task(()=>openReportRegister(c));
  if(overview.can_write&&c.kind!=='forecast'){$('page-actions').insertAdjacentHTML('afterbegin',action('capture-case',overview.active_case_id===c.id?'Stop capture':'Use for capture'));$('capture-case').onclick=()=>planningTask(async()=>{await rpc('capture_case',{p_company:companyId,p_case:overview.active_case_id===c.id?null:c.id});await refresh();});}
+ $('page-actions').insertAdjacentHTML('beforeend',action('case-timeline','Account time series'));
+ $('case-timeline').onclick=()=>planningTask(async()=>{
+  const company=companyId;const data=await rpc('case_timeline',{p_company:company,p_case:c.id});
+  if(companyId!==company||caseId!==c.id)return;
+  showTimeline(data,()=>renderCase(c));
+ });
  if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<details class="case-description"><summary>Case description</summary><div class="description-text">${esc(c.notes)}</div></details>`);
  if(overview.active_case_id===c.id)$('content').insertAdjacentHTML('afterbegin','<p class="capture-state">Active case for capture</p>');
  for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>planningTask(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
@@ -200,7 +218,7 @@ async function openReportRegister(c=null){
  downloadReport(report);
 }));
 }
-function editor(title,fields,save){editorContextChanged=false;$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
+function editor(title,fields,save){$('editor-form').querySelector('button[type=submit]').textContent='Save';editorContextChanged=false;$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
 async function editCase(c){
  const company=companyId;editorContextChanged=false;
  openCaseEditor({record:c||{},save:async record=>{
@@ -208,11 +226,11 @@ async function editCase(c){
   busy=true;document.body.setAttribute('aria-busy','true');
   try{
    if(companyId!==company||!await checkPlanningContext())throw Error('Planning settings changed. Close and reopen Case details; your text is retained.');
-   caseId=await rpc('case_save',{p_company:company,p_case:c?.id||null,p_name:record.name,p_notes:record.notes});
+   caseId=await rpc('case_save_typed',{p_company:company,p_case:c?.id||null,p_name:record.name,p_notes:record.notes,p_type:record.planning_purpose});
   }finally{busy=false;document.body.removeAttribute('aria-busy');}
  },afterSave:()=>task(()=>refresh())});
 }
-function editScenario(c,s){editor(s?'Scenario details':'New scenario',`<label>Name<input name="name" required value="${esc(s?.name||'')}"></label><label>Status<select name="status">${statusOptions(s?.status||'Proposal')}</select></label><label>Scenario description<textarea name="description" rows="14">${esc(s?.description||'')}</textarea></label>`,async d=>{await rpc('scenario_details_save',{p_company:companyId,p_case:c.id,p_scenario:s?.id||null,p_name:d.get('name'),p_status:d.get('status'),p_description:d.get('description')});});}
+function editScenario(c,s){editor(s?'Scenario details':'New scenario',`<label>Name<input name="name" required value="${esc(s?.name||'')}"></label><label>Status<select name="status">${s?.status==='Applied'?'<option value="Applied" selected>Applied</option>':statusOptions(s?.status||'Proposal')}</select></label><label>Scenario description<textarea name="description" rows="14">${esc(s?.description||'')}</textarea></label>`,async d=>{await rpc('scenario_details_save',{p_company:companyId,p_case:c.id,p_scenario:s?.id||null,p_name:d.get('name'),p_status:d.get('status'),p_description:d.get('description')});});}
 function copyScenario(c,s){editor('Copy scenario',`<label>Name<input name="name" required value="${esc(s.name+' - copy')}"></label><label>Copy as<select name="kind"><option value="alternative">Scenario</option><option value="reference">Reference batch</option></select></label>`,async d=>{await rpc('copy_batch',{p_company:companyId,p_batch:s.batch_id,p_name:d.get('name'),p_reference:d.get('kind')==='reference'});});}
 $('editor-form').onsubmit=e=>{e.preventDefault();planningTask(async()=>{await saveEditor(new FormData(e.target));$('editor').close();await refresh()})};$('close-editor').onclick=$('cancel-editor').onclick=()=>$('editor').close();
 const sessionResult=await dataClient.auth.getSession();auth=sessionResult.data.session;

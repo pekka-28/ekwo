@@ -4,6 +4,12 @@ var caseFields = [{
   key: "identity",
   fields: [
     { column: "name", label: "Name", required: true },
+    {
+      column: "planning_purpose",
+      label: "Case type",
+      required: true,
+      options: ["Tax", "Treasury", "Investments", "Project", "Other"]
+    },
     { column: "notes", label: "Case description", multiline: true }
   ]
 }];
@@ -12,7 +18,11 @@ function openCaseEditor(options) {
   const host = document.getElementById("case-editor-fields");
   const close = document.getElementById("case-editor-close");
   let saving = false;
-  const record = { name: options.record.name ?? "", notes: options.record.notes ?? "" };
+  const record = {
+    name: options.record.name ?? "",
+    notes: options.record.notes ?? "",
+    planning_purpose: options.record.planning_purpose ?? "Tax"
+  };
   document.getElementById("case-editor-title").textContent = options.record.id ? "Case details" : "New case";
   const cancel = () => {
     if (!saving) dialog.close();
@@ -29,7 +39,11 @@ function openCaseEditor(options) {
       saving = true;
       close.disabled = true;
       try {
-        await options.save({ name: patch.name ?? record.name, notes: "notes" in patch ? patch.notes ?? "" : record.notes });
+        await options.save({
+          name: patch.name ?? record.name,
+          notes: "notes" in patch ? patch.notes ?? "" : record.notes,
+          planning_purpose: patch.planning_purpose ?? record.planning_purpose
+        });
       } finally {
         saving = false;
         close.disabled = false;
