@@ -39,6 +39,13 @@ function chartBounds(series) {
   const high = Math.max(0, ...values);
   return { low, high, span: high - low || 1 };
 }
+function financeCostPercent(value, basis) {
+  if (basis <= 0n) throw Error("Enter a positive comparison amount.");
+  return Number(value) / Number(basis) * 100;
+}
+function defaultChartAccount(accounts) {
+  return accounts.find((a) => /current account|funding bank|cash at bank/i.test(a.name))?.id ?? accounts.find((a) => /bank|cash/i.test(a.name) && !/loan|interest|overdraft|debt/i.test(a.name))?.id ?? accounts[0]?.id ?? "";
+}
 function element(tag, text) {
   const result = document.createElement(tag);
   if (text !== void 0) result.textContent = text;
@@ -102,19 +109,34 @@ function renderCaseTimeline(host, data) {
     option.value = account.id;
     select.append(option);
     const cost = option.cloneNode(true);
-    cost.selected = data.finance_cost_accounts?.includes(account.id) ?? false;
+    cost.selected = data.finance_cost_accounts?.length ? data.finance_cost_accounts.includes(account.id) : /interest|finance cost/i.test(account.name);
     costs.append(cost);
   }
-  select.value = data.accounts.find((a) => /bank|cash|funding account/i.test(a.name))?.id ?? data.accounts[0]?.id ?? "";
+  select.value = defaultChartAccount(data.accounts);
   accountLabel.append(select);
   host.append(accountLabel);
   const costToggle = element("input");
   costToggle.type = "checkbox";
   const toggleLabel = element("label");
-  toggleLabel.append(costToggle, document.createTextNode(" Show cumulative finance costs (right axis)"));
+  toggleLabel.append(costToggle, document.createTextNode(" Show finance cost proportion (right axis)"));
   costsLabel.append(costs);
   costsLabel.hidden = true;
   host.append(toggleLabel, costsLabel);
+  const proportionLabel = element("label", `Comparison amount (${data.currency}) `);
+  const proportion = element("input");
+  proportion.type = "number";
+  proportion.min = "0.01";
+  proportion.step = "0.01";
+  proportion.setAttribute("aria-label", "Finance cost comparison amount");
+  proportion.placeholder = "For example, 120000 for a R120,000 purchase";
+  proportion.value = data.finance_cost_basis ?? "";
+  try {
+    proportion.value = sessionStorage.getItem("lustre-finance-basis:" + data.case_id) ?? proportion.value;
+  } catch {
+  }
+  proportionLabel.append(proportion);
+  proportionLabel.hidden = true;
+  host.append(proportionLabel);
   const legend = element("fieldset");
   legend.append(element("legend", "Scenarios"));
   const enabled = new Set(data.scenarios.map((s) => s.id));
@@ -137,10 +159,18 @@ function renderCaseTimeline(host, data) {
     const costAccounts = Array.from(costs.selectedOptions).map((o) => o.value);
     const costData = timelineSeries(data, costAccounts, includeForecast, true);
     const bounds = chartBounds(all.series);
-    const costBounds = chartBounds(costData.series);
+    let denominator = 0n;
+    try {
+      denominator = decimal(proportion.value);
+    } catch {
+    }
+    const costValues = costData.series.flatMap((s) => s.values.map((v) => denominator > 0n ? financeCostPercent(v, denominator) : 0));
+    const costLow = Math.min(0, ...costValues), costHigh = Math.max(0, ...costValues);
+    const costBounds = { low: costLow, high: costHigh, span: costHigh - costLow || 1 };
     const series = all.series.filter((s) => enabled.has(s.scenario.id));
-    const showCosts = costToggle.checked && costAccounts.length > 0;
+    const showCosts = costToggle.checked && costAccounts.length > 0 && denominator > 0n;
     costsLabel.hidden = !costToggle.checked;
+    proportionLabel.hidden = !costToggle.checked;
     const width = 1e3, height = 360, left = 90, right = showCosts ? 90 : 20, top = 35, bottom = 45;
     const first = Date.parse(all.dates[0]), last = Date.parse(all.dates.at(-1));
     const x = (date) => left + (Date.parse(date) - first) / (last - first) * (width - left - right);
@@ -161,7 +191,7 @@ function renderCaseTimeline(host, data) {
       chart.append(node);
     };
     label(`Account balance (${data.currency})`, left, 15);
-    if (showCosts) label(`Cumulative finance costs (${data.currency})`, width - right, 15, "end");
+    if (showCosts) label("Cumulative finance cost (%)", width - right, 15, "end");
     const compact = new Intl.NumberFormat(void 0, { notation: "compact" });
     for (let i = 0; i <= 4; i++) {
       const value = bounds.low + bounds.span * i / 4;
@@ -169,7 +199,7 @@ function renderCaseTimeline(host, data) {
       label(compact.format(value), left - 8, y(value) + 4, "end");
       if (showCosts) {
         const cost = costBounds.low + costBounds.span * i / 4;
-        label(compact.format(cost), width - right + 8, y(cost, costBounds) + 4);
+        label(cost.toFixed(1) + "%", width - right + 8, y(cost, costBounds) + 4);
       }
     }
     chart.append(svg("line", { x1: String(left), x2: String(width - right), y1: String(y(0)), y2: String(y(0)), stroke: "currentColor" }));
@@ -185,10 +215,12 @@ function renderCaseTimeline(host, data) {
     const line = (values, id, name, cost) => {
       let path = "";
       values.forEach((value, i) => {
-        const px = x(all.dates[i]), py = y(Number(value) / Number(scale), cost ? costBounds : bounds);
+        const px = x(all.dates[i]), py = y(cost ? financeCostPercent(value, denominator) : Number(value) / Number(scale), cost ? costBounds : bounds);
         path += i === 0 ? `M${px},${py}` : `H${px}V${py}`;
       });
       const node = svg("path", { d: path, fill: "none", stroke: colour(data.scenarios.findIndex((s) => s.id === id)), "stroke-width": cost ? "1.8" : "2.5" });
+      node.setAttribute("data-scenario", id);
+      node.setAttribute("data-series", cost ? "cost" : "balance");
       if (cost) node.setAttribute("stroke-dasharray", "5 4");
       const title = svg("title", {});
       title.textContent = name + (cost ? " \u2014 cumulative finance costs" : "");
@@ -201,13 +233,14 @@ function renderCaseTimeline(host, data) {
     }
     graph.append(chart, element("p", "Balances are debit less credit. The margins carry opening and closing balances without inventing transactions."));
     if (!series.length) graph.append(element("p", "Choose a Scenario to display."));
-    if (showCosts) graph.append(element("p", "Dashed lines use the right axis: cumulative movements in the chosen finance-cost accounts, excluding opening balances and principal repayments. The axes have independent scales."));
+    if (showCosts) graph.append(element("p", `Dashed lines: cumulative selected finance costs \xF7 ${money(denominator)} \xD7 100. This is cumulative cost as a proportion of the common comparison amount, not an annualised interest rate. Principal and opening balances are excluded. Only checked Scenarios appear on either axis; coincident traces overlap.`));
+    if (costToggle.checked && denominator <= 0n) graph.append(element("p", "Enter the common purchase or funding amount to display finance cost as a percentage. For a R120,000 purchase, enter 120000."));
     if (costToggle.checked && !costAccounts.length) graph.append(element("p", "Choose the expense accounts that represent finance costs."));
     const head = element("thead"), header = element("tr");
     header.append(element("th", "Date"));
     for (const item of series) {
       header.append(element("th", item.scenario.name));
-      if (showCosts) header.append(element("th", `${item.scenario.name} costs`));
+      if (showCosts) header.append(element("th", `${item.scenario.name} finance cost %`));
     }
     head.append(header);
     table.append(head);
@@ -217,7 +250,7 @@ function renderCaseTimeline(host, data) {
       row.append(element("th", date));
       for (const item of series) {
         row.append(element("td", money(item.values[i])));
-        if (showCosts) row.append(element("td", money(costData.series.find((s) => s.scenario.id === item.scenario.id).values[i])));
+        if (showCosts) row.append(element("td", financeCostPercent(costData.series.find((s) => s.scenario.id === item.scenario.id).values[i], denominator).toFixed(2) + "%"));
       }
       body.append(row);
     });
@@ -242,11 +275,20 @@ function renderCaseTimeline(host, data) {
   context.onchange = draw;
   costs.onchange = draw;
   costToggle.onchange = draw;
+  proportion.oninput = () => {
+    try {
+      sessionStorage.setItem("lustre-finance-basis:" + data.case_id, proportion.value);
+    } catch {
+    }
+    draw();
+  };
   draw();
 }
 export {
   chartBounds,
   decimal,
+  defaultChartAccount,
+  financeCostPercent,
   renderCaseTimeline,
   timelineSeries
 };

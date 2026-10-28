@@ -2,7 +2,14 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {timelineSeries,decimal,type CaseTimeline} from '../src/case-timeline.ts';
+import {timelineSeries,decimal,financeCostPercent,defaultChartAccount,type CaseTimeline} from '../src/case-timeline.ts';
+
+test('chart starts on cash rather than loan liabilities and finance cost uses an explicit common denominator',()=>{
+    assert.equal(defaultChartAccount([{id:'loan',code:'2400',name:'Bank loans — non-current'},{id:'bank',code:'1010',name:'Business current account'}]),'bank');
+    assert.equal(financeCostPercent(decimal('12000'),decimal('120000')),10);
+    assert.equal(financeCostPercent(0n,decimal('120000')),0);
+    assert.throws(()=>financeCostPercent(1n,0n),/positive/);
+});
 test('Treasury alternatives share horizon, reconcile journals and expose funding shortfall',async()=>{
     const data=JSON.parse(await readFile(new URL('../examples/naledi-treasury.json',import.meta.url),'utf8')) as CaseTimeline;
     const bank=timelineSeries(data,'bank');
