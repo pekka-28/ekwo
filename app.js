@@ -108,26 +108,33 @@ function render(){rememberView();notice();$('breadcrumb').textContent=workspaceK
  $('page-title').textContent=workspaceKind==='forecast'?'Forecast':'Cases';if(overview.can_write&&workspaceKind==='case'){$('page-actions').innerHTML=action('new-case','New case');$('new-case').onclick=()=>planningTask(()=>editCase());}
  $('content').innerHTML=listedCases.length?`<div class="case-table"><table><thead><tr><th>Case</th><th>Type</th><th>Scenarios</th><th>Selected</th></tr></thead><tbody>${listedCases.map(c=>`<tr><td><button class="text-button" data-case="${c.id}">${esc(c.name)}</button></td><td>${esc(caseType(c))}</td><td>${c.scenarios?.length||0}</td><td>${esc(c.scenarios?.find(s=>s.id===c.selected_scenario_id)?.name||'')}</td></tr>`).join('')}</tbody></table></div>`:`<p class="empty">${workspaceKind==='forecast'?'No forecasts. A source budget is required.':'No cases.'}</p>`;
  $('content').querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>task(async()=>{caseId=b.dataset.case;await refresh()}));}
-function showTimeline(data,back){
- $('page-title').textContent=data.name+' — account time series';
+function showTimeline(data,c,report=null){
+ $('page-title').textContent=c.name+' — Chart';
  $('breadcrumb').textContent='PLANNING–'+(data.case_type==='Other'?'Project':data.case_type);
- $('page-actions').innerHTML=action('back-analysis','Back');$('back-analysis').onclick=back;
- renderCaseTimeline($('content'),data);
+ $('page-actions').innerHTML=action('back-analysis','Back')+action('chart-report','Report');$('back-analysis').onclick=()=>renderCase(c);
+ $('chart-report').onclick=()=>report?showCaseReport(c,report):planningTask(()=>openCaseDocument(c));
+ renderCaseTimeline($('content'),data,included=>planningTask(()=>openCaseChart(c,report,included)));
+}
+async function openCaseChart(c,report=null,included=false){
+ const company=companyId;
+ try{
+  const data=await rpc('case_chart',{p_company:company,p_case:c.id,p_context:included});
+  if(companyId!==company||caseId!==c.id)return;
+  showTimeline(data,c,report);
+ }catch(error){
+  if(included&&!error.message.startsWith('Planning is not active'))throw Error('Shared context is unavailable: '+error.message+'. Case alone remains available; review the selected Cases and Forecasts before including them.');
+  throw error;
+ }
 }
 function statusOptions(current){return [...new Set([...states,current])].filter(Boolean).map(s=>`<option ${s===current?'selected':''}>${esc(s)}</option>`).join('');}
-function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.presentation?.transactions||'journal';$('page-title').textContent=c.name+' — '+caseType(c);$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">'+(c.kind==='forecast'?'Forecast':'Cases')+'</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Create report')+action('past-reports','Saved reports')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+(c.kind==='forecast'?'':action('new-scenario','New scenario')):'');$('clear-selection').onclick=()=>planningTask(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>planningTask(()=>editCase(c));if($('new-scenario'))$('new-scenario').onclick=()=>planningTask(()=>editScenario(c));}
+function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.presentation?.transactions||'journal';$('page-title').textContent=c.name+' — '+caseType(c);$('breadcrumb').innerHTML='<a href="#cases" id="back-cases">'+(c.kind==='forecast'?'Forecast':'Cases')+'</a> / '+esc(c.name);$('page-actions').innerHTML=action('case-document','Report')+action('case-timeline','Chart')+action('past-reports','Saved reports')+action('clear-selection','Use baseline')+(overview.can_write?action('edit-case','Case details')+(c.kind==='forecast'?'':action('new-scenario','New scenario')):'');$('clear-selection').onclick=()=>planningTask(async()=>{await rpc('select',{p_company:companyId,p_case:c.id,p_scenario:null});await refresh()});if(overview.can_write){$('edit-case').onclick=()=>planningTask(()=>editCase(c));if($('new-scenario'))$('new-scenario').onclick=()=>planningTask(()=>editScenario(c));}
  $('content').innerHTML=`<div class="case-table"><table><thead><tr><th>Scenario</th><th>Status</th><th>Selected</th><th>Entries</th><th></th></tr></thead><tbody>${(c.scenarios||[]).map(s=>`<tr><td>${scenarioName(s)}</td><td><span class="state">${esc(s.status||'Proposal')}</span></td><td><label class="selection"><input type="radio" name="scenario-selection" data-select="${s.id}" aria-label="Select ${esc(s.name)}" ${c.selected_scenario_id===s.id?'checked':''}></label></td><td><button class="text-button" data-events="${s.id}" ${canReview(s)?'':'disabled'} aria-label="Events for ${esc(s.name)}">${s.summary_entries?`${s.summary_entries}/`:""}${s.entries}</button></td><td><div class="row-actions">${overview.can_write?`<button data-edit="${s.id}" ${!s.actions?.edit?'disabled title="Reported scenario: copy to edit"':''}>Edit</button><button data-copy="${s.id}">Copy</button>`:''}<button data-events="${s.id}" ${canReview(s)?'':'disabled'}>Events</button></div></td></tr>`).join('')}</tbody></table></div>`;
  $('page-actions').insertAdjacentHTML('afterbegin',`<label class="events-switch"><select id="case-level" aria-label="Summary or detail"><option value="summary" ${eventLevel==='summary'?'selected':''}>Summary</option><option value="detail" ${eventLevel==='detail'?'selected':''}>Detail</option></select></label><label class="events-switch"><select id="case-view" aria-label="Display type"><option value="journal" ${eventMode==='journal'?'selected':''}>Journal</option><option value="accounts" ${eventMode==='accounts'?'selected':''}>T-accounts</option><option value="chart" ${eventMode==='chart'?'selected':''}>Accounts</option></select></label>`);
  $('case-level').onchange=e=>{const level=e.target.value;planningTask(()=>saveCasePresentation(c,level,eventMode));};
  $('case-view').onchange=e=>{const view=e.target.value;planningTask(()=>saveCasePresentation(c,eventLevel,view));};
  $('case-document').onclick=()=>planningTask(()=>openCaseDocument(c));$('past-reports').onclick=()=>task(()=>openReportRegister(c));
  if(overview.can_write&&c.kind!=='forecast'){$('page-actions').insertAdjacentHTML('afterbegin',action('capture-case',overview.active_case_id===c.id?'Stop capture':'Use for capture'));$('capture-case').onclick=()=>planningTask(async()=>{await rpc('capture_case',{p_company:companyId,p_case:overview.active_case_id===c.id?null:c.id});await refresh();});}
- $('page-actions').insertAdjacentHTML('beforeend',action('case-timeline','Account time series'));
- $('case-timeline').onclick=()=>planningTask(async()=>{
-  const company=companyId;const data=await rpc('case_timeline',{p_company:company,p_case:c.id});
-  if(companyId!==company||caseId!==c.id)return;
-  showTimeline(data,()=>renderCase(c));
- });
+ $('case-timeline').onclick=()=>planningTask(()=>openCaseChart(c));
  if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<details class="case-description"><summary>Case description</summary><div class="description-text">${esc(c.notes)}</div></details>`);
  if(overview.active_case_id===c.id)$('content').insertAdjacentHTML('afterbegin','<p class="capture-state">Active case for capture</p>');
  for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>planningTask(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
@@ -203,7 +210,22 @@ async function openCaseDocument(c){
  const request=sessionStorage.getItem(key)||crypto.randomUUID();sessionStorage.setItem(key,request);
  const run=await requestReport({company,case:c.id,request});
  const report=await rpc('report_get',{p_company:company,p_report:run.report_id});
- downloadReport(report);sessionStorage.removeItem(key);await refresh();
+ sessionStorage.removeItem(key);
+ if(companyId!==company||caseId!==c.id)return;
+ await refresh();showCaseReport(overview.cases.find(item=>item.id===c.id)||c,report);
+}
+function showCaseReport(c,report){
+ if(!report?.html)throw Error(report?.error||'Report has not completed. Retry it from Saved reports.');
+ $('page-title').textContent=c.name+' — Report';
+ $('breadcrumb').textContent='PLANNING / '+c.name;
+ $('page-actions').innerHTML=action('report-back','Back')+action('report-chart','Chart')+action('report-download','Download');
+ $('report-back').onclick=()=>renderCase(c);
+ $('report-chart').onclick=()=>planningTask(()=>openCaseChart(c,report));
+ $('report-download').onclick=()=>downloadReport(report);
+ $('content').replaceChildren();
+ const note=document.createElement('p');note.textContent='This report is a saved snapshot. Chart opens the current Case; returning here preserves this report.';
+ const frame=document.createElement('iframe');frame.title=c.name+' report';frame.setAttribute('sandbox','');frame.style.cssText='width:100%;height:75vh;border:0;background:white';frame.srcdoc=report.html;
+ $('content').append(note,frame);
 }
 async function openReportRegister(c=null){
  const reports=await rpc('reports',{p_company:companyId,p_case:c?.id||null});
@@ -220,7 +242,7 @@ async function openReportRegister(c=null){
  }
  downloadReport(report);
 }));
- if(!reports.length)$('content').innerHTML='<p class="empty">No saved reports yet. Create report in a Case saves a dated snapshot for later review. This archive does not generate reports automatically.</p>';
+ if(!reports.length)$('content').innerHTML='<p class="empty">No saved reports yet. Report in a Case saves a dated snapshot for later review. This archive does not generate reports automatically.</p>';
 }
 function editor(title,fields,save){$('editor-form').querySelector('button[type=submit]').textContent='Save';editorContextChanged=false;$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
 async function editCase(c){

@@ -96,7 +96,7 @@ function fit(select) {
   select.style.maxWidth = "28rem";
   select.style.minWidth = "0";
 }
-function renderCaseTimeline(host, data) {
+function renderCaseTimeline(host, data, loadContext) {
   host.replaceChildren();
   host.append(element("p", `${data.case_type === "Other" ? "Project" : data.case_type} \xB7 ${data.currency} \xB7 ${data.from ?? "No dated entries"} \u2014 ${data.through ?? "No dated entries"}`));
   const basis = element("p", data.basis);
@@ -123,7 +123,7 @@ function renderCaseTimeline(host, data) {
     option.value = value;
     context.append(option);
   }
-  context.value = "forecast";
+  context.value = data.context_included === false ? "alone" : "forecast";
   context.disabled = !data.financing_scenarios;
   contextLabel.append(context);
   host.append(contextLabel);
@@ -313,7 +313,18 @@ function renderCaseTimeline(host, data) {
   });
   host.append(legend, graph, tableHost);
   select.onchange = draw;
-  context.onchange = draw;
+  context.onchange = async () => {
+    if (loadContext && data.context_included !== (context.value === "forecast")) {
+      const included = context.value === "forecast";
+      context.disabled = true;
+      try {
+        await loadContext(included);
+      } finally {
+        context.value = data.context_included === false ? "alone" : "forecast";
+        context.disabled = false;
+      }
+    } else draw();
+  };
   costs.onchange = draw;
   costToggle.onchange = draw;
   principal.onchange = draw;

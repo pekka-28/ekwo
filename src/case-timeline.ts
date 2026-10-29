@@ -22,6 +22,7 @@ export interface CaseTimeline {
     forecast_names?: string[];
     finance_cost_accounts?: string[];
     finance_principal_accounts?: string[];
+    context_included?: boolean;
     assumptions?: string[];
 }
 const scale = 1000000n;
@@ -136,7 +137,7 @@ function fit(select: HTMLSelectElement) {
     select.style.minWidth = '0';
 }
 
-export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline) {
+export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadContext?: (included: boolean) => Promise<void>) {
     host.replaceChildren();
     host.append(element('p', `${data.case_type === 'Other' ? 'Project' : data.case_type} · ${data.currency} · ${data.from ?? 'No dated entries'} — ${data.through ?? 'No dated entries'}`));
     const basis = element('p', data.basis);
@@ -163,7 +164,7 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline) {
         option.value = value!;
         context.append(option);
     }
-    context.value = 'forecast';
+    context.value = data.context_included === false ? 'alone' : 'forecast';
     context.disabled = !data.financing_scenarios;
     contextLabel.append(context);
     host.append(contextLabel);
@@ -342,7 +343,16 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline) {
     });
     host.append(legend, graph, tableHost);
     select.onchange = draw;
-    context.onchange = draw;
+    context.onchange = async () => {
+        if (loadContext && data.context_included !== (context.value === 'forecast')) {
+            const included = context.value === 'forecast';
+            context.disabled = true;
+            try {await loadContext(included);} finally {
+                context.value = data.context_included === false ? 'alone' : 'forecast';
+                context.disabled = false;
+            }
+        } else draw();
+    };
     costs.onchange = draw;
     costToggle.onchange = draw;
     principal.onchange = draw;
