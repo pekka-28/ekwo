@@ -5,10 +5,22 @@ import {saveJournalDraft, type JournalInput} from './journal.ts';
 // Ekwo core intentionally delegates CRUD and transport to this SDK.
 // Keep application RPC names here; accounting policy remains in the database.
 export function createDataClient(url: string, key: string, storage: Storage, fetcher?: typeof fetch) {
+  const transport = fetcher ?? globalThis.fetch.bind(globalThis);
+  const compatibleFetch: typeof fetch = (input, init) => {
+    const target = new URL(input instanceof Request ? input.url : String(input));
+    if (target.origin === new URL(url).origin && target.pathname === '/functions/v1/report-run') {
+      // The deployed worker predates the SDK's optional client-info header.
+      // Keep auth and payload intact; avoid a rejected browser preflight.
+      const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+      headers.delete('x-client-info');
+      return transport(input, {...init, headers});
+    }
+    return transport(input, init);
+  };
   const db = createClient(url, key, {
     auth: { storage, storageKey: 'ekwo-lustre-session', persistSession: true,
       autoRefreshToken: true, detectSessionInUrl: false },
-    ...(fetcher ? { global: { fetch: fetcher } } : {}),
+    global: { fetch: compatibleFetch },
   });
   async function value<T>(query: PromiseLike<{data: T; error: {message: string} | null}>) {
     const {data, error} = await query;

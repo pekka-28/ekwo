@@ -58,6 +58,22 @@ test('report errors retain the server explanation',async()=>{
   await assert.rejects(client.report({company:'wrong'}),/Report belongs to another company/);
   client.auth.stopAutoRefresh();
 });
+
+test('report transport fits deployed CORS headers without stripping authentication or payload',async()=>{
+  let seen=false;
+  const client=createDataClient('https://example.test','public-key',memoryStorage(),async(input,init)=>{
+    assert.equal(new URL(String(input)).pathname,'/functions/v1/report-run');
+    const headers=new Headers(init?.headers);
+    assert.equal(headers.has('x-client-info'),false);
+    assert.equal(headers.get('apikey'),'public-key');
+    assert.equal(headers.get('authorization'),'Bearer public-key');
+    assert.equal(headers.get('content-type'),'application/json');
+    assert.deepEqual(JSON.parse(String(init?.body)),{company:'company',case:'case',request:'request'});
+    seen=true;return new Response('{"report_id":"saved"}',{headers:{'Content-Type':'application/json'}});
+  });
+  assert.deepEqual(await client.report({company:'company',case:'case',request:'request'}),{report_id:'saved'});
+  assert(seen);client.auth.stopAutoRefresh();
+});
 test('SDK refreshes an expired legacy session before a data request',async()=>{
   const storage=memoryStorage();
   const jwt=(exp:number)=>['header',Buffer.from(JSON.stringify({exp,sub:'user-1',session_id:'planning-owner'})).toString('base64url'),'signature'].join('.');
