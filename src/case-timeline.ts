@@ -137,9 +137,13 @@ function fit(select: HTMLSelectElement) {
     select.style.minWidth = '0';
 }
 
+const chartDate = new Intl.DateTimeFormat('en-GB', {day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+const displayChartDate = (value: string) => chartDate.format(new Date(value));
+
 export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadContext?: (included: boolean) => Promise<void>) {
     host.replaceChildren();
-    host.append(element('p', `${data.case_type === 'Other' ? 'Project' : data.case_type} · ${data.currency} · ${data.from ?? 'No dated entries'} — ${data.through ?? 'No dated entries'}`));
+    const range = data.from && data.through ? `${displayChartDate(data.from)}-${displayChartDate(data.through)}` : 'No dated entries';
+    host.append(element('p', `${data.case_type === 'Other' ? 'Project' : data.case_type} · ${data.currency} · ${range}`));
     const basis = element('p', data.basis);
     host.append(basis);
     if (data.assumptions?.length) {
@@ -167,8 +171,9 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
     context.value = data.context_included === false ? 'alone' : 'forecast';
     context.disabled = !data.financing_scenarios;
     contextLabel.append(context);
-    host.append(contextLabel);
-    const accountLabel = element('label', 'Account ');
+    const options = element('details');
+    options.append(element('summary', 'Chart options'), contextLabel);
+    const accountLabel = element('label', 'Show ');
     accountLabel.style.display = 'block';
     const select = element('select');
     select.setAttribute('aria-label', 'Account');
@@ -209,7 +214,11 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
     costsLabel.append(costs);
     costsLabel.hidden = true;
     principalLabel.append(principal); principalLabel.hidden = true;
-    host.append(toggleLabel, costsLabel, principalLabel);
+    host.append(toggleLabel);
+    options.append(costsLabel, principalLabel);
+    const calculation = element('p');
+    options.append(calculation);
+    options.append(element('p', 'Balances are debit less credit. Opening and closing balances extend into the chart margins.'));
 
     const legend = element('fieldset');
     legend.append(element('legend', 'Scenarios'));
@@ -230,8 +239,8 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
         table.replaceChildren();
         const includeForecast = context.value === 'forecast';
         basis.textContent = includeForecast
-            ? `${data.basis} Selected Forecasts: ${(data.forecast_names ?? []).join(', ') || 'none'}.`
-            : 'Case journals and the actual opening position only. Forecasts and other projected Cases are excluded.';
+            ? `With selected context. Forecasts: ${(data.forecast_names ?? []).join(', ') || 'none'}.`
+            : 'Case alone';
         const all = timelineSeries(data, select.value, includeForecast);
         const costAccounts = Array.from(costs.selectedOptions).map(o => o.value);
         const principalAccounts = Array.from(principal.selectedOptions).map(o => o.value);
@@ -244,6 +253,8 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
         const showCosts = costToggle.checked && costAccounts.length > 0 && principalAccounts.length > 0;
         costsLabel.hidden = !costToggle.checked;
         principalLabel.hidden = !costToggle.checked;
+        calculation.hidden = !costToggle.checked;
+        calculation.textContent = 'Finance cost is interest at each date divided by outstanding funding before repayment. Combined funding uses total interest and principal. Values follow the selected accounts, with no annualisation; absent interest is zero. Lines connect observations. All checked Scenarios appear on both axes.';
         const width = 1000, height = 360, left = 90, right = showCosts ? 90 : 20, top = 35, bottom = 45;
         const first = Date.parse(all.dates[0]!), last = Date.parse(all.dates.at(-1)!);
         const x = (date: string) => left + (Date.parse(date) - first) / (last - first) * (width - left - right);
@@ -303,11 +314,13 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
             line(item.values, item.scenario.id, item.scenario.name, false);
             if (showCosts) line(costData.find(s => s.scenario.id === item.scenario.id)!.values, item.scenario.id, item.scenario.name, true);
         }
-        graph.append(chart, element('p', 'Balances are debit less credit. The margins carry opening and closing balances without inventing transactions.'));
+        graph.append(chart);
         if (!series.length) graph.append(element('p', 'Choose a Scenario to display.'));
-        if (showCosts) graph.append(element('p', 'Dashed lines: interest at each date ÷ outstanding funding immediately before that date’s repayments × 100. Combined funding uses total interest and total outstanding principal. No contract terms, fixed purchase amount or annualisation are used. Values follow the selected accounts’ journal movements; absent interest is zero. Lines connect observations, not a calculation between them. Only checked Scenarios appear on either axis.'));
         if (showCosts && costData.some(s => enabled.has(s.scenario.id) && s.values.includes(null))) graph.append(element('p', 'Some interest has no corresponding outstanding funding in the selected accounts. Those rates are unavailable and appear as gaps.'));
-        if (costToggle.checked && (!costAccounts.length || !principalAccounts.length)) graph.append(element('p', 'Choose the interest and outstanding funding accounts to display the finance cost.'));
+        if (costToggle.checked && (!costAccounts.length || !principalAccounts.length)) {
+            options.open = true;
+            graph.append(element('p', 'Choose the interest and outstanding funding accounts in Chart options to display the finance cost.'));
+        }
         const head = element('thead'), header = element('tr');
         header.append(element('th', 'Date'));
         for (const item of series) {
@@ -319,7 +332,7 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
         const body = element('tbody');
         all.dates.forEach((date, i) => {
             const row = element('tr');
-            row.append(element('th', date));
+            row.append(element('th', displayChartDate(date)));
             for (const item of series) {
                 row.append(element('td', money(item.values[i]!)));
                 if (showCosts) {
@@ -341,7 +354,7 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
         item.append(check, document.createTextNode(` ${scenario.name}${scenario.is_applied ? ' (actual position)' : ''}`));
         legend.append(item);
     });
-    host.append(legend, graph, tableHost);
+    host.append(legend, graph, tableHost, options);
     select.onchange = draw;
     context.onchange = async () => {
         if (loadContext && data.context_included !== (context.value === 'forecast')) {
