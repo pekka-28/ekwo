@@ -2,7 +2,16 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {timelineSeries,decimal,financeCostPercent,financingRates,defaultChartAccount,dateTicks,type CaseTimeline} from '../src/case-timeline.ts';
+import {timelineSeries,decimal,financeCostPercent,financingRates,defaultChartAccount,dateTicks,roundedAxis,type CaseTimeline} from '../src/case-timeline.ts';
+
+test('Rounded axes leave space beyond both extrema, including a flat zero series',()=>{
+    for(const [low,high] of [[-130000,110000],[0,50000],[-10000,0],[0,0],[0,13.56]]){
+        const bounds=roundedAxis(low!,high!);
+        assert(bounds.low<low!);assert(bounds.high>high!);
+        assert(Math.abs(bounds.low/bounds.step-Math.round(bounds.low/bounds.step))<1e-9);
+        assert(Math.abs(bounds.high/bounds.step-Math.round(bounds.high/bounds.step))<1e-9);
+    }
+});
 
 test('date labels adapt to the horizon without labelling all sixty months',()=>{
     const ticks=dateTicks('2026-01-01','2031-01-01');

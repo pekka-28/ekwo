@@ -24,6 +24,8 @@ export interface CaseTimeline {
     finance_principal_accounts?: string[];
     context_included?: boolean;
     assumptions?: string[];
+    selected_scenario_id?: string | null;
+    active_context?: string[];
 }
 const scale = 1000000n;
 const day = 86400000;
@@ -70,6 +72,18 @@ export function chartBounds(series: {values: bigint[]}[]) {
     const low = Math.min(0, ...values);
     const high = Math.max(0, ...values);
     return {low, high, span: high - low || 1};
+}
+
+export function roundedAxis(low: number, high: number) {
+    const span = high-low || Math.max(Math.abs(high),1);
+    const padding = span*.07;
+    const rawStep = (span+2*padding)/4;
+    const magnitude = 10**Math.floor(Math.log10(rawStep));
+    const unit = rawStep/magnitude;
+    const step = (unit<=1?1:unit<=2?2:unit<=5?5:10)*magnitude;
+    const minimum = Math.floor((low-padding)/step)*step;
+    const maximum = Math.ceil((high+padding)/step)*step;
+    return {low:minimum,high:maximum,span:maximum-minimum,step};
 }
 
 export function financeCostPercent(value: bigint, basis: bigint): number {
@@ -147,7 +161,7 @@ const displayChartDate = (value: string) => chartDate.format(new Date(value));
 export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadContext?: (included: boolean) => Promise<void>) {
     host.replaceChildren();
     const range = data.from && data.through ? `${displayChartDate(data.from)}-${displayChartDate(data.through)}` : 'No dated entries';
-    host.append(element('p', `${data.case_type === 'Other' ? 'Project' : data.case_type} · ${data.currency} · ${range}`));
+    host.append(element('p', `${data.case_type === 'Other' ? 'Project' : data.case_type} · ${range}`));
     const basis = element('p', data.basis);
     host.append(basis);
     if (data.assumptions?.length) {
@@ -244,24 +258,30 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
     const table = element('table');
     tableHost.append(table);
     const colour = (i: number) => `var(--color-series-${i + 1}, ${['#2864b4', '#a04e14', '#388047', '#9a3da4', '#555'][i % 5]})`;
-    const moneyFormat = new Intl.NumberFormat(undefined, {style: 'currency', currency: data.currency});
-    const money = (value: bigint) => moneyFormat.format(Number(value) / Number(scale));
+    const moneyFormat = new Intl.NumberFormat('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2});
+    const money = (value: bigint) => `${data.currency} ${moneyFormat.format(Number(value) / Number(scale))}`;
 
     const draw = () => {
         graph.replaceChildren();
         table.replaceChildren();
         const includeForecast = context.value === 'forecast';
+        const selected = data.scenarios.find(s=>s.id===data.selected_scenario_id);
+        const selection = `Active Scenario: ${selected?.name ?? 'Applied (actual position)'}.`;
         basis.textContent = includeForecast
-            ? `With selected context. Forecasts: ${(data.forecast_names ?? []).join(', ') || 'none'}.`
-            : 'Case alone';
+            ? `${selection} Active context: ${(data.active_context ?? data.forecast_names ?? []).join('; ') || 'none'}.`
+            : `Case alone. ${selection}`;
         const all = timelineSeries(data, select.value, includeForecast);
         const costAccounts = Array.from(costs.selectedOptions).map(o => o.value);
         const principalAccounts = Array.from(principal.selectedOptions).map(o => o.value);
         const costData = all.series.map(s => ({scenario:s.scenario, values:financingRates(s.scenario, all.dates, costAccounts, principalAccounts)}));
-        const bounds = chartBounds(all.series);
+        const rawBounds = chartBounds(all.series);
+        const bounds = roundedAxis(rawBounds.low,rawBounds.high);
+        const amountPrecision = Math.max(0,Math.ceil(-Math.log10(bounds.step/1000)));
+        const amountFormat = new Intl.NumberFormat('en-GB',{minimumFractionDigits:amountPrecision,maximumFractionDigits:amountPrecision});
+        const displayAmount = (value:number) => amountFormat.format(Object.is(value,-0)?0:value/1000);
         const costValues=costData.flatMap(s=>s.values.filter((v): v is number => v !== null));
         const costLow=Math.min(0,...costValues),costHigh=Math.max(0,...costValues);
-        const costBounds={low:costLow,high:costHigh,span:costHigh-costLow||1};
+        const costBounds=roundedAxis(costLow,costHigh);
         const series = all.series.filter(s => enabled.has(s.scenario.id));
         const showCosts = costToggle.checked && costAccounts.length > 0 && principalAccounts.length > 0;
         costsLabel.hidden = !costToggle.checked;
@@ -290,16 +310,17 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
                 transform:`rotate(${rotation} ${position} ${centre})`, fill:'currentColor', 'font-size':'12'});
             node.textContent = text; chart.append(node);
         };
-        axisTitle(`Account balance (${data.currency})`, 18, -90);
+        axisTitle(`Account balance (${data.currency} '000s)`, 18, -90);
         if (showCosts) axisTitle('Finance cost (% p.a.)', width - 12, 90);
-        const compact = new Intl.NumberFormat(undefined, {notation: 'compact'});
-        for (let i = 0; i <= 4; i++) {
-            const value = bounds.low + bounds.span * i / 4;
+        for (let i = 0; i <= Math.round(bounds.span/bounds.step); i++) {
+            const value = bounds.low + bounds.step * i;
             chart.append(svg('line', {x1: String(left), x2: String(width - right), y1: String(y(value)), y2: String(y(value)), stroke: 'var(--color-chart-grid, #ddd)'}));
-            label(compact.format(value), left - 8, y(value) + 4, 'end');
-            if (showCosts) {
-                const cost = costBounds.low + costBounds.span * i / 4;
-                label(cost.toFixed(1)+'%', width - right + 8, y(cost, costBounds) + 4);
+            label(displayAmount(value), left - 8, y(value) + 4, 'end');
+        }
+        if (showCosts) {
+            for(let i=0;i<=Math.round(costBounds.span/costBounds.step);i++){
+                const cost=costBounds.low+costBounds.step*i;
+                label(cost.toFixed(1)+'%',width-right+8,y(cost,costBounds)+4);
             }
         }
         chart.append(svg('line', {x1: String(left), x2: String(width - right), y1: String(y(0)), y2: String(y(0)), stroke: 'currentColor'}));
@@ -323,6 +344,10 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
             });
             const node = svg('path', {d: path, fill: 'none', stroke: colour(data.scenarios.findIndex(s => s.id === id)), 'stroke-width': cost ? '1.8' : '2.5'});
             node.setAttribute('data-scenario',id);node.setAttribute('data-series',cost?'cost':'balance');
+            // Match Ekwo's native star-chart interaction: each trace is focusable
+            // and named, with focus/blur offering the same feedback as hovering.
+            node.setAttribute('tabindex','0');
+            node.setAttribute('aria-label',name+(cost?' — finance cost':' — account balance'));
             if (cost) node.setAttribute('stroke-dasharray', '5 4');
             const title = svg('title', {});
             title.textContent = name + (cost ? ' — finance costs' : '');
@@ -355,12 +380,12 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
             while (index + 1 < all.dates.length && x(all.dates[index + 1]!) <= px) index++;
             const candidates = series.flatMap(item => {
                 const value = item.values[index]!;
-                const found = [{id:item.scenario.id, kind:'balance', distance:Math.abs(py-y(Number(value)/Number(scale))), text:`${item.scenario.name}: ${money(value)}`}];
+                const found = [{id:item.scenario.id, kind:'balance', distance:Math.abs(py-y(Number(value)/Number(scale))), text:`${item.scenario.name}: ${displayAmount(Number(value)/Number(scale))}`}];
                 if (showCosts) {
                     const values = costData.find(s=>s.scenario.id===item.scenario.id)!.values;
                     const nearest = index + 1 < all.dates.length && px-x(all.dates[index]!) > x(all.dates[index+1]!)-px ? index+1 : index;
                     const rate = values[nearest];
-                    if (rate != null) found.push({id:item.scenario.id, kind:'cost', distance:Math.abs(py-y(rate,costBounds)), text:`${item.scenario.name}: ${rate.toFixed(2)}% p.a. (${displayChartDate(all.dates[nearest]!)})`});
+                    if (rate != null) found.push({id:item.scenario.id, kind:'cost', distance:Math.abs(py-y(rate,costBounds)), text:`${item.scenario.name}: ${rate.toFixed(1)}% p.a. (${displayChartDate(all.dates[nearest]!)})`});
                 }
                 return found;
             });
@@ -370,12 +395,21 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
             // Select the nearest trace anywhere in the plot. Use screen pixels
             // for the overlap tolerance so small charts remain easy to explore.
             const matches = candidates.filter(c=>c.distance <= closest + 8 * height / rect.height);
-            tooltip.textContent = [displayChartDate(all.dates[index]!), ...matches.map(c=>c.text)].join('\n');
+            tooltip.textContent = [displayChartDate(all.dates[index]!), `Account balance (${data.currency} '000s)`, ...matches.map(c=>c.text)].join('\n');
             tooltip.hidden = false;
             tooltip.style.left = `${Math.max(0,Math.min(event.clientX-rect.left+12,rect.width-tooltip.offsetWidth))}px`;
             tooltip.style.top = `${Math.max(0,event.clientY-rect.top-tooltip.offsetHeight-12)}px`;
             for (const path of Array.from(chart.querySelectorAll('path[data-series]'))) if (matches.some(c=>c.id===path.getAttribute('data-scenario')&&c.kind===path.getAttribute('data-series'))) path.setAttribute('stroke-width','4');
         });
+        for(const path of Array.from(chart.querySelectorAll<SVGPathElement>('path[data-series]'))){
+            path.addEventListener('focus',()=>{
+                const matrix=path.getScreenCTM();if(!matrix)return;
+                const point=path.getPointAtLength(path.getTotalLength()/2);
+                const position=new DOMPoint(point.x,point.y).matrixTransform(matrix);
+                chart.dispatchEvent(new PointerEvent('pointermove',{clientX:position.x,clientY:position.y}));
+            });
+            path.addEventListener('blur',clearHover);
+        }
         if (!series.length) graph.append(element('p', 'Choose a Scenario to display.'));
         if (showCosts && costData.some(s => enabled.has(s.scenario.id) && s.values.includes(null))) graph.append(element('p', 'Some interest has no corresponding outstanding funding or preceding cash-flow date. Those annualised rates are unavailable and appear as gaps.'));
         if (costToggle.checked && (!costAccounts.length || !principalAccounts.length)) {
