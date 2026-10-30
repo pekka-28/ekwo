@@ -1,6 +1,7 @@
 // data-client.ts
 import { createClient, FunctionsHttpError } from '@supabase/supabase-js';
 import {saveJournalDraft, type JournalInput} from './journal.ts';
+import {readFsaResult} from './fsa-result.ts';
 
 // Ekwo core intentionally delegates CRUD and transport to this SDK.
 // Keep application RPC names here; accounting policy remains in the database.
@@ -25,7 +26,7 @@ export function createDataClient(url: string, key: string, storage: Storage, fet
   async function value<T>(query: PromiseLike<{data: T; error: {message: string} | null}>) {
     const {data, error} = await query;
     if (error) throw new Error(error.message);
-    return data;
+    return readFsaResult(data);
   }
   let accounting: Promise<ReturnType<typeof db.schema>> | undefined;
   const native = () => accounting ??= (async () => {
