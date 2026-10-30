@@ -82,7 +82,7 @@ function dateTicks(from, through) {
   return ticks;
 }
 function defaultChartAccount(accounts) {
-  return accounts.find((a) => /current account|funding bank|cash at bank/i.test(a.name))?.id ?? accounts.find((a) => /bank|cash/i.test(a.name) && !/loan|interest|overdraft|debt/i.test(a.name))?.id ?? accounts[0]?.id ?? "";
+  return accounts.find((a) => /funding bank|funding account|funded .*investments/i.test(a.name))?.id ?? accounts.find((a) => /current account|cash at bank/i.test(a.name))?.id ?? accounts.find((a) => /bank|cash/i.test(a.name) && !/loan|interest|overdraft|debt/i.test(a.name))?.id ?? accounts[0]?.id ?? "";
 }
 function element(tag, text) {
   const result = document.createElement(tag);
@@ -153,15 +153,17 @@ function renderCaseTimeline(host, data, loadContext) {
   principal.size = 3;
   principal.setAttribute("aria-label", "Outstanding funding accounts");
   fit(principal);
+  const displayedScenarios = data.context_included === false ? data.financing_scenarios ?? data.scenarios : data.scenarios;
+  const movingAccounts = new Set(displayedScenarios.flatMap((s) => s.movements.filter((m) => decimal(m.amount) !== 0n).map((m) => m.account)));
   for (const account of data.accounts) {
     const option = element("option", `${account.code} ${account.name}`);
     option.value = account.id;
     select.append(option);
     const cost = option.cloneNode(true);
-    cost.selected = data.finance_cost_accounts?.length ? data.finance_cost_accounts.includes(account.id) : /interest|finance cost/i.test(account.name);
+    cost.selected = data.finance_cost_accounts?.length ? data.finance_cost_accounts.includes(account.id) : movingAccounts.has(account.id) && /interest|finance cost/i.test(account.name) && !/receivable|payable/i.test(account.name);
     costs.append(cost);
     const funding = option.cloneNode(true);
-    funding.selected = data.finance_principal_accounts?.includes(account.id) ?? (/loan|borrowing|junior funding|senior funding|overdraft/i.test(account.name) && !/interest|cost|expense/i.test(account.name));
+    funding.selected = data.finance_principal_accounts?.includes(account.id) ?? (movingAccounts.has(account.id) && /loan|borrowing|junior funding|senior funding|overdraft|\bHP\b/i.test(account.name) && !/interest|cost|expense/i.test(account.name));
     principal.append(funding);
   }
   select.value = defaultChartAccount(data.accounts);
