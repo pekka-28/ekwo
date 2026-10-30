@@ -31,8 +31,8 @@ test('cash-flow interest uses prior outstanding principal, including junior expi
     const dates=['2026-02-10','2026-03-20','2026-04-30','2026-05-31'];
     const rates=financingRates(scenario,dates,['interest'],['senior','junior']);
     assert.equal(rates[0],0,'Grace payment has no interest');
-    assert.equal(rates[1],1250/110000*100,'Junior repayment uses combined balance before repayment');
-    assert.equal(rates[2],1,'Final payment uses remaining senior balance, not zero after repayment');
+    assert.equal(rates[1],1250/110000*100*365/38,'Junior repayment uses combined balance before repayment and actual elapsed days');
+    assert.equal(rates[2],365/41,'Final payment uses remaining senior balance, not zero after repayment');
     assert.equal(rates[3],null,'Interest without principal must not silently become zero');
     const larger=structuredClone(scenario);
     for(const key of Object.keys(larger.opening) as (keyof typeof larger.opening)[]) larger.opening[key]=String(Number(larger.opening[key])*10);
@@ -42,7 +42,9 @@ test('cash-flow interest uses prior outstanding principal, including junior expi
         {account:'deposit',date:'2026-02-10',amount:'-1000'},
         {account:'interest',date:'2026-03-20',amount:'-90'},
     ]};
-    assert.deepEqual(financingRates(deposit,dates.slice(0,2),['interest'],['deposit']),[0,-1],'Deposit grace and interest received retain their cash-flow direction');
+    assert.deepEqual(financingRates(deposit,dates.slice(0,2),['interest'],['deposit']),[0,-365/38],'Deposit grace and interest received retain their cash-flow direction');
+    const unknown={...scenario,movements:[{account:'interest',date:'2026-02-10',amount:'100'}]};
+    assert.deepEqual(financingRates(unknown,[dates[0]!],['interest'],['senior']),[null],'Never invent an accrual start from the chart margin');
 });
 test('Treasury alternatives share horizon, reconcile journals and expose funding shortfall',async()=>{
     const data=JSON.parse(await readFile(new URL('../examples/naledi-treasury.json',import.meta.url),'utf8')) as CaseTimeline;

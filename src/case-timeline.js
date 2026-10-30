@@ -53,13 +53,16 @@ function financingRates(scenario, dates, interestAccounts, principalAccounts) {
     group.push(movement);
     movements.set(movement.date, group);
   }
+  let previousFundingDate;
   return dates.map((date) => {
     const group = movements.get(date) ?? [];
     const outstanding = [...balances.values()].reduce((sum, value) => sum + (value < 0n ? -value : value), 0n);
     const cost = group.reduce((sum, movement) => sum + (interest.has(movement.account) ? decimal(movement.amount) : 0n), 0n);
+    const days = previousFundingDate === void 0 ? 0 : (Date.parse(date) - Date.parse(previousFundingDate)) / day;
+    if (group.some((movement) => (interest.has(movement.account) || principal.has(movement.account)) && decimal(movement.amount) !== 0n)) previousFundingDate = date;
     for (const movement of group) if (principal.has(movement.account))
       balances.set(movement.account, (balances.get(movement.account) ?? 0n) + decimal(movement.amount));
-    return cost === 0n ? 0 : outstanding > 0n ? financeCostPercent(cost, outstanding) : null;
+    return cost === 0n ? 0 : outstanding > 0n && days > 0 ? financeCostPercent(cost, outstanding) * 365 / days : null;
   });
 }
 function dateTicks(from, through) {
@@ -208,7 +211,7 @@ function renderCaseTimeline(host, data, loadContext) {
     costsLabel.hidden = !costToggle.checked;
     principalLabel.hidden = !costToggle.checked;
     calculation.hidden = !costToggle.checked;
-    calculation.textContent = "Finance cost is interest at each date divided by outstanding funding before repayment. Combined funding uses total interest and principal. Values follow the selected accounts, with no annualisation; absent interest is zero. Lines connect observations. All checked Scenarios appear on both axes.";
+    calculation.textContent = "Annualised finance cost is interest divided by outstanding funding before repayment, multiplied by 365 divided by the actual days since the preceding funding or interest cash flow. Combined funding uses total interest and principal. This is simple annualisation of observed flows, not a compounded return or contractual APR. A missing preceding date makes the rate unavailable; absent interest is zero. All checked Scenarios appear on both axes.";
     const width = 1e3, height = 360, left = 90, right = showCosts ? 90 : 20, top = 35, bottom = 45;
     const first = Date.parse(all.dates[0]), last = Date.parse(all.dates.at(-1));
     const x = (date) => left + (Date.parse(date) - first) / (last - first) * (width - left - right);
@@ -229,7 +232,7 @@ function renderCaseTimeline(host, data, loadContext) {
       chart.append(node);
     };
     label(`Account balance (${data.currency})`, left, 15);
-    if (showCosts) label("Finance cost (%)", width - right, 15, "end");
+    if (showCosts) label("Finance cost (% p.a.)", width - right, 15, "end");
     const compact = new Intl.NumberFormat(void 0, { notation: "compact" });
     for (let i = 0; i <= 4; i++) {
       const value = bounds.low + bounds.span * i / 4;
@@ -281,7 +284,7 @@ function renderCaseTimeline(host, data, loadContext) {
     }
     graph.append(chart);
     if (!series.length) graph.append(element("p", "Choose a Scenario to display."));
-    if (showCosts && costData.some((s) => enabled.has(s.scenario.id) && s.values.includes(null))) graph.append(element("p", "Some interest has no corresponding outstanding funding in the selected accounts. Those rates are unavailable and appear as gaps."));
+    if (showCosts && costData.some((s) => enabled.has(s.scenario.id) && s.values.includes(null))) graph.append(element("p", "Some interest has no corresponding outstanding funding or preceding cash-flow date. Those annualised rates are unavailable and appear as gaps."));
     if (costToggle.checked && (!costAccounts.length || !principalAccounts.length)) {
       options.open = true;
       graph.append(element("p", "Choose the interest and outstanding funding accounts in Chart options to display the finance cost."));
@@ -290,7 +293,7 @@ function renderCaseTimeline(host, data, loadContext) {
     header.append(element("th", "Date"));
     for (const item of series) {
       header.append(element("th", item.scenario.name));
-      if (showCosts) header.append(element("th", `${item.scenario.name} finance cost %`));
+      if (showCosts) header.append(element("th", `${item.scenario.name} finance cost % p.a.`));
     }
     head.append(header);
     table.append(head);
