@@ -144,14 +144,11 @@ function renderCaseTimeline(host, data, loadContext) {
   context.disabled = !data.financing_scenarios;
   contextLabel.append(context);
   const options = element("details");
-  const optionsSummary = element("summary", "\u25B8 Chart options \u2014 expand");
+  const optionsSummary = element("summary", "Chart options");
   optionsSummary.style.cursor = "pointer";
   optionsSummary.style.listStyle = "none";
   optionsSummary.style.fontWeight = "600";
   optionsSummary.style.padding = ".6rem 0";
-  options.ontoggle = () => {
-    optionsSummary.textContent = options.open ? "\u25BE Chart options \u2014 collapse" : "\u25B8 Chart options \u2014 expand";
-  };
   options.append(optionsSummary, contextLabel);
   const accountLabel = element("label", "Show ");
   accountLabel.style.display = "block";
@@ -179,24 +176,22 @@ function renderCaseTimeline(host, data, loadContext) {
     option.value = account.id;
     select.append(option);
     const cost = option.cloneNode(true);
-    cost.selected = data.finance_cost_accounts?.length ? data.finance_cost_accounts.includes(account.id) : movingAccounts.has(account.id) && /interest|finance cost/i.test(account.name) && !/receivable|payable/i.test(account.name);
+    cost.selected = data.finance_cost_accounts?.length ? data.finance_cost_accounts.includes(account.id) : movingAccounts.has(account.id) && /interest|finance cost/i.test(account.name) && !/receivable|payable|income/i.test(account.name);
     costs.append(cost);
     const funding = option.cloneNode(true);
     funding.selected = data.finance_principal_accounts?.includes(account.id) ?? (movingAccounts.has(account.id) && /loan|borrowing|junior funding|senior funding|overdraft|\bHP\b/i.test(account.name) && !/interest|cost|expense/i.test(account.name));
     principal.append(funding);
   }
-  select.value = defaultChartAccount(data.accounts);
+  for (const measure of data.chart_measures ?? []) {
+    const option = element("option", measure.name);
+    option.value = measure.id;
+    select.append(option);
+  }
+  select.value = data.chart_measures?.find((m) => m.default)?.id ?? defaultChartAccount(data.accounts);
   accountLabel.append(select);
   host.append(accountLabel);
-  const costToggle = element("input");
-  costToggle.type = "checkbox";
-  const toggleLabel = element("label");
-  toggleLabel.append(costToggle, document.createTextNode(" Show finance cost (right axis)"));
   costsLabel.append(costs);
-  costsLabel.hidden = true;
   principalLabel.append(principal);
-  principalLabel.hidden = true;
-  host.append(toggleLabel);
   options.append(costsLabel, principalLabel);
   const calculation = element("p");
   options.append(calculation);
@@ -222,7 +217,9 @@ function renderCaseTimeline(host, data, loadContext) {
     const selected = data.scenarios.find((s) => s.id === data.selected_scenario_id);
     const selection = `Active Scenario: ${selected?.name ?? "Applied (actual position)"}.`;
     basis.textContent = includeForecast ? `${selection} Active context: ${(data.active_context ?? data.forecast_names ?? []).join("; ") || "none"}.` : `Case alone. ${selection}`;
-    const all = timelineSeries(data, select.value, includeForecast);
+    const measure = data.chart_measures?.find((m) => m.id === select.value);
+    const all = timelineSeries(data, measure?.accounts ?? select.value, includeForecast);
+    if (measure?.sign === -1) for (const series2 of all.series) series2.values = series2.values.map((v) => -v);
     const costAccounts = Array.from(costs.selectedOptions).map((o) => o.value);
     const principalAccounts = Array.from(principal.selectedOptions).map((o) => o.value);
     const costData = all.series.map((s) => ({ scenario: s.scenario, values: financingRates(s.scenario, all.dates, costAccounts, principalAccounts) }));
@@ -235,10 +232,7 @@ function renderCaseTimeline(host, data, loadContext) {
     const costLow = Math.min(0, ...costValues), costHigh = Math.max(0, ...costValues);
     const costBounds = roundedAxis(costLow, costHigh);
     const series = all.series.filter((s) => enabled.has(s.scenario.id));
-    const showCosts = costToggle.checked && costAccounts.length > 0 && principalAccounts.length > 0;
-    costsLabel.hidden = !costToggle.checked;
-    principalLabel.hidden = !costToggle.checked;
-    calculation.hidden = !costToggle.checked;
+    const showCosts = true;
     calculation.textContent = "Annualised finance cost is interest divided by outstanding funding before repayment, multiplied by 365 divided by the actual days since the preceding funding or interest cash flow. Combined funding uses total interest and principal. This is simple annualisation of observed flows, not a compounded return or contractual APR. A missing preceding date makes the rate unavailable; absent interest is zero. All checked Scenarios appear on both axes.";
     const width = 1e3, height = 360, left = 100, right = showCosts ? 105 : 20, top = 20, bottom = 45;
     const first = Date.parse(all.dates[0]), last = Date.parse(all.dates.at(-1));
@@ -272,7 +266,7 @@ function renderCaseTimeline(host, data, loadContext) {
       node.textContent = text;
       chart.append(node);
     };
-    axisTitle(`Account balance (${data.currency} '000s)`, 18, -90);
+    axisTitle(`${measure?.name ?? "Account balance"} (${data.currency} '000s)`, 18, -90);
     if (showCosts) axisTitle("Finance cost (% p.a.)", width - 12, 90);
     for (let i = 0; i <= Math.round(bounds.span / bounds.step); i++) {
       const value = bounds.low + bounds.step * i;
@@ -363,7 +357,7 @@ function renderCaseTimeline(host, data, loadContext) {
       clearHover();
       if (!candidates.length) return;
       const matches = candidates.filter((c) => c.distance <= closest + 8 * height / rect.height);
-      tooltip.textContent = [displayChartDate(all.dates[index]), `Account balance (${data.currency} '000s)`, ...matches.map((c) => c.text)].join("\n");
+      tooltip.textContent = [displayChartDate(all.dates[index]), `${measure?.name ?? "Account balance"} (${data.currency} '000s)`, ...matches.map((c) => c.text)].join("\n");
       tooltip.hidden = false;
       tooltip.style.left = `${Math.max(0, Math.min(event.clientX - rect.left + 12, rect.width - tooltip.offsetWidth))}px`;
       tooltip.style.top = `${Math.max(0, event.clientY - rect.top - tooltip.offsetHeight - 12)}px`;
@@ -381,10 +375,6 @@ function renderCaseTimeline(host, data, loadContext) {
     }
     if (!series.length) graph.append(element("p", "Choose a Scenario to display."));
     if (showCosts && costData.some((s) => enabled.has(s.scenario.id) && s.values.includes(null))) graph.append(element("p", "Some interest has no corresponding outstanding funding or preceding cash-flow date. Those annualised rates are unavailable and appear as gaps."));
-    if (costToggle.checked && (!costAccounts.length || !principalAccounts.length)) {
-      options.open = true;
-      graph.append(element("p", "Choose the interest and outstanding funding accounts in Chart options to display the finance cost."));
-    }
     const head = element("thead"), header = element("tr");
     header.append(element("th", "Date"));
     for (const item of series) {
@@ -420,6 +410,16 @@ function renderCaseTimeline(host, data, loadContext) {
     item.style.marginRight = "1rem";
     item.style.color = colour(i);
     item.append(check, document.createTextNode(` ${scenario.name}${scenario.is_applied ? " (actual position)" : ""}`));
+    const highlight = (active) => {
+      for (const path of Array.from(graph.querySelectorAll("path[data-series]"))) {
+        const match = active && path.dataset.scenario === scenario.id;
+        path.setAttribute("stroke-width", match ? "4" : path.dataset.series === "cost" ? "1.8" : "2.5");
+      }
+    };
+    item.onpointerenter = () => highlight(true);
+    item.onpointerleave = () => highlight(false);
+    check.onfocus = () => highlight(true);
+    check.onblur = () => highlight(false);
     legend.append(item);
   });
   host.append(legend, graph, tableHost, options);
@@ -437,7 +437,6 @@ function renderCaseTimeline(host, data, loadContext) {
     } else draw();
   };
   costs.onchange = draw;
-  costToggle.onchange = draw;
   principal.onchange = draw;
   draw();
 }
