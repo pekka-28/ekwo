@@ -4,13 +4,15 @@ import {displayDate} from './format.js?v=database-presentation-v1';
 import {openEventEditor} from './event-editor.js';
 import {nativeIcon} from './icons.js';
 import {openCaseEditor} from './src/case-view.js';
-import {renderCaseTimeline} from './src/case-timeline.js';
+import {renderCaseTimeline} from './src/case-timeline.js?v=chart-hover-20261030-2';
 import {registerApplication,mountMenu,unmount} from './ekwo-view-runtime.js';
 ﻿import {config} from './config.js';
 import {createDataClient} from './data-client.js';
 const dataClient=createDataClient(config.url,config.publishableKey,sessionStorage);
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const states=['Proposal','Reviewing','Accepted','Retired'];
+const exampleMarker = text => String(text??'').match(/^\[lustre-example:[^\]\r\n]+\](?::[^\r\n]+)?\r?\n/)?.[0]??'';
+const descriptionText = text => String(text??'').slice(exampleMarker(text).length);
 let auth=null;
 dataClient.auth.onAuthStateChange((event,session)=>{auth=session;if(event==='SIGNED_OUT')location.replace('sign-in.html');});
 let companies=[],companyId=null,caseId=null,overview={cases:[],batches:[]},busy=false,saveEditor=null,eventReview=null,eventMode='journal',eventLevel='summary',workspaceKind='case',planningAllowed=true;
@@ -92,7 +94,23 @@ function renderPlanningMenu(){
 new MutationObserver(renderPlanningMenu).observe(document.documentElement,{attributes:true,attributeFilter:['data-folded','data-menu-open']});
 window.addEventListener('resize',renderPlanningMenu);
 async function start(){companies=await dataClient.companies();const stored=sessionStorage.getItem('ekwo-lustre-company:'+auth.user.id);companyId=companies.some(c=>c.id===stored)?stored:companies.length===1?companies[0].id:null;$('account-name').textContent=auth.user.email;$('workspace').hidden=false;$('sign-out').hidden=false;companyPicker();sidebar();await refresh();}
-async function selectCompany(id){if(!companies.some(c=>c.id===id))return;companyId=id;caseId=null;sessionStorage.setItem('ekwo-lustre-company:'+auth.user.id,id);closeCompanies();companyPicker();sidebar();await refresh();}
+async function selectCompany(id){
+ const company=companies.find(c=>c.id===id);if(!company)return;
+ companyId=id;caseId=null;eventReview=null;overview={cases:[],batches:[]};
+ sessionStorage.setItem('ekwo-lustre-company:'+auth.user.id,id);closeCompanies();companyPicker();sidebar();
+ $('company-toggle').disabled=true;$('company-menu').inert=true;$('side-menu').inert=true;
+ $('company-name').textContent='Loading '+company.name+'…';
+ $('page-title').textContent=company.name;$('page-actions').replaceChildren();
+ $('breadcrumb').textContent='';$('content').innerHTML='<p role="status" aria-live="polite">Loading company…</p>';
+ try{await refresh();}
+ catch(error){
+  $('page-actions').innerHTML=action('retry-company','Retry');
+  $('content').innerHTML='<p>Company information could not be loaded. Retry or choose another company.</p>';
+  $('retry-company').onclick=()=>task(()=>selectCompany(id));throw error;
+ }finally{
+  $('company-toggle').disabled=false;$('company-menu').inert=false;$('side-menu').inert=false;companyPicker();
+ }
+}
 function renderPlanningSession(){eventReview=null;caseId=null;overview={cases:[],batches:[]};$('breadcrumb').textContent='PLANNING';$('page-title').textContent='Planning session';$('page-actions').innerHTML=action('planning-takeover','Use planning here');$('content').innerHTML='<p>Planning is not active in this session. Taking over prevents other login sessions from using the planning ledger.</p>';$('planning-takeover').onclick=()=>task(async()=>{await rpc('planning_takeover',{});await refresh();});}
 async function refresh(){if(companyId){const access=await rpc('access',{p_company:companyId});planningAllowed=access.planning;sidebar();if(planningAllowed&&!access.planning_active){renderPlanningSession();return;}if(!planningAllowed){eventReview=null;caseId=null;overview={cases:[],batches:[]};await openReportRegister();return;}}if(eventReview&&eventReview.company!==companyId)eventReview=null;if(eventReview){const snapshot=await rpc('scenario_events',{p_company:companyId,p_scenario:eventReview.scenario.id});if(canReview(snapshot))Object.assign(eventReview,snapshot);else eventReview=null;}overview=companyId?await rpc('workspace',{p_company:companyId}):{cases:[],batches:[]};if(caseId){const c=overview.cases.find(c=>c.id===caseId);if(c)c.presentation=await rpc('case_presentation',{p_company:companyId,p_case:caseId});}if(caseId&&!overview.cases.some(c=>c.id===caseId))caseId=null;render();}
 function action(id,label){return `<button id="${id}">${label}</button>`;}
@@ -135,7 +153,7 @@ function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.p
  $('case-document').onclick=()=>planningTask(()=>openCaseDocument(c));$('past-reports').onclick=()=>task(()=>openReportRegister(c));
  if(overview.can_write&&c.kind!=='forecast'){$('page-actions').insertAdjacentHTML('afterbegin',action('capture-case',overview.active_case_id===c.id?'Stop capture':'Use for capture'));$('capture-case').onclick=()=>planningTask(async()=>{await rpc('capture_case',{p_company:companyId,p_case:overview.active_case_id===c.id?null:c.id});await refresh();});}
  $('case-timeline').onclick=()=>planningTask(()=>openCaseChart(c));
- if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<details class="case-description"><summary>Case description</summary><div class="description-text">${esc(c.notes)}</div></details>`);
+ if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<details class="case-description"><summary>Case description</summary><div class="description-text">${esc(descriptionText(c.notes))}</div></details>`);
  if(overview.active_case_id===c.id)$('content').insertAdjacentHTML('afterbegin','<p class="capture-state">Active case for capture</p>');
  for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>planningTask(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
  $('back-cases').onclick=e=>{e.preventDefault();caseId=null;render()};
@@ -247,12 +265,12 @@ async function openReportRegister(c=null){
 function editor(title,fields,save){$('editor-form').querySelector('button[type=submit]').textContent='Save';editorContextChanged=false;$('editor-title').textContent=title;$('editor-fields').innerHTML=fields;$('editor-error').textContent='';saveEditor=save;$('editor').showModal();$('editor-fields').querySelector('input')?.focus();}
 async function editCase(c){
  const company=companyId;editorContextChanged=false;
- openCaseEditor({record:c||{},save:async record=>{
+ openCaseEditor({record:c?{...c,notes:descriptionText(c.notes)}:{},save:async record=>{
   if(busy)throw Error('Another operation is in progress. Try again.');
   busy=true;document.body.setAttribute('aria-busy','true');
   try{
    if(companyId!==company||!await checkPlanningContext())throw Error('Planning settings changed. Close and reopen Case details; your text is retained.');
-   caseId=await rpc('case_save_typed',{p_company:company,p_case:c?.id||null,p_name:record.name,p_notes:record.notes,p_type:record.planning_purpose});
+   caseId=await rpc('case_save_typed',{p_company:company,p_case:c?.id||null,p_name:record.name,p_notes:exampleMarker(c?.notes)+record.notes,p_type:record.planning_purpose});
   }finally{busy=false;document.body.removeAttribute('aria-busy');}
  },afterSave:()=>task(()=>refresh())});
 }

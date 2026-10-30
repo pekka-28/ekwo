@@ -176,7 +176,13 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
     context.disabled = !data.financing_scenarios;
     contextLabel.append(context);
     const options = element('details');
-    options.append(element('summary', 'Chart options'), contextLabel);
+    const optionsSummary = element('summary', '▸ Chart options — expand');
+    optionsSummary.style.cursor = 'pointer';
+    optionsSummary.style.listStyle = 'none';
+    optionsSummary.style.fontWeight = '600';
+    optionsSummary.style.padding = '.6rem 0';
+    options.ontoggle = () => {optionsSummary.textContent = options.open ? '▾ Chart options — collapse' : '▸ Chart options — expand';};
+    options.append(optionsSummary, contextLabel);
     const accountLabel = element('label', 'Show ');
     accountLabel.style.display = 'block';
     const select = element('select');
@@ -231,6 +237,7 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
     const enabled = new Set(data.scenarios.map(s => s.id));
     const graph = element('div');
     graph.className = 'case-timeline';
+    graph.style.position = 'relative';
     const tableHost = element('details');
     tableHost.style.overflowX = 'auto';
     tableHost.append(element('summary', 'Account balances by date'));
@@ -261,7 +268,7 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
         principalLabel.hidden = !costToggle.checked;
         calculation.hidden = !costToggle.checked;
         calculation.textContent = 'Annualised finance cost is interest divided by outstanding funding before repayment, multiplied by 365 divided by the actual days since the preceding funding or interest cash flow. Combined funding uses total interest and principal. This is simple annualisation of observed flows, not a compounded return or contractual APR. A missing preceding date makes the rate unavailable; absent interest is zero. All checked Scenarios appear on both axes.';
-        const width = 1000, height = 360, left = 90, right = showCosts ? 90 : 20, top = 35, bottom = 45;
+        const width = 1000, height = 360, left = 100, right = showCosts ? 105 : 20, top = 20, bottom = 45;
         const first = Date.parse(all.dates[0]!), last = Date.parse(all.dates.at(-1)!);
         const x = (date: string) => left + (Date.parse(date) - first) / (last - first) * (width - left - right);
         const y = (value: number, b = bounds) => height - bottom - (value - b.low) / b.span * (height - top - bottom);
@@ -277,8 +284,14 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
             node.textContent = text;
             chart.append(node);
         };
-        label(`Account balance (${data.currency})`, left, 15);
-        if (showCosts) label('Finance cost (% p.a.)', width - right, 15, 'end');
+        const axisTitle = (text: string, position: number, rotation: number) => {
+            const centre = (top + height - bottom) / 2;
+            const node = svg('text', {x:String(position), y:String(centre), 'text-anchor':'middle',
+                transform:`rotate(${rotation} ${position} ${centre})`, fill:'currentColor', 'font-size':'12'});
+            node.textContent = text; chart.append(node);
+        };
+        axisTitle(`Account balance (${data.currency})`, 18, -90);
+        if (showCosts) axisTitle('Finance cost (% p.a.)', width - 12, 90);
         const compact = new Intl.NumberFormat(undefined, {notation: 'compact'});
         for (let i = 0; i <= 4; i++) {
             const value = bounds.low + bounds.span * i / 4;
@@ -321,6 +334,48 @@ export function renderCaseTimeline(host: HTMLElement, data: CaseTimeline, loadCo
             if (showCosts) line(costData.find(s => s.scenario.id === item.scenario.id)!.values, item.scenario.id, item.scenario.name, true);
         }
         graph.append(chart);
+        const tooltip = element('div');
+        tooltip.setAttribute('role', 'tooltip');
+        tooltip.hidden = true;
+        tooltip.style.cssText = 'position:absolute;pointer-events:none;background:var(--paper,#fff);color:var(--ink,#20293a);border:1px solid currentColor;border-radius:6px;padding:8px;white-space:pre-line;max-width:90%;font-size:13px;z-index:1';
+        graph.append(tooltip);
+        const clearHover = () => {
+            tooltip.hidden = true;
+            for (const path of Array.from(chart.querySelectorAll('path[data-series]'))) path.setAttribute('stroke-width', path.getAttribute('data-series') === 'cost' ? '1.8' : '2.5');
+        };
+        chart.addEventListener('pointerleave', clearHover);
+        chart.addEventListener('pointermove', event => {
+            const rect = chart.getBoundingClientRect();
+            const px = (event.clientX - rect.left) * width / rect.width;
+            const py = (event.clientY - rect.top) * height / rect.height;
+            const edgeTolerance = 8 * width / rect.width;
+            if (px < left-edgeTolerance || px > width-right+edgeTolerance || py < top-edgeTolerance || py > height-bottom+edgeTolerance) {clearHover(); return;}
+            // Balance paths are steps; use the last movement at or before the pointer.
+            let index = 0;
+            while (index + 1 < all.dates.length && x(all.dates[index + 1]!) <= px) index++;
+            const candidates = series.flatMap(item => {
+                const value = item.values[index]!;
+                const found = [{id:item.scenario.id, kind:'balance', distance:Math.abs(py-y(Number(value)/Number(scale))), text:`${item.scenario.name}: ${money(value)}`}];
+                if (showCosts) {
+                    const values = costData.find(s=>s.scenario.id===item.scenario.id)!.values;
+                    const nearest = index + 1 < all.dates.length && px-x(all.dates[index]!) > x(all.dates[index+1]!)-px ? index+1 : index;
+                    const rate = values[nearest];
+                    if (rate != null) found.push({id:item.scenario.id, kind:'cost', distance:Math.abs(py-y(rate,costBounds)), text:`${item.scenario.name}: ${rate.toFixed(2)}% p.a. (${displayChartDate(all.dates[nearest]!)})`});
+                }
+                return found;
+            });
+            const closest = Math.min(...candidates.map(c=>c.distance));
+            clearHover();
+            if (!candidates.length) return;
+            // Select the nearest trace anywhere in the plot. Use screen pixels
+            // for the overlap tolerance so small charts remain easy to explore.
+            const matches = candidates.filter(c=>c.distance <= closest + 8 * height / rect.height);
+            tooltip.textContent = [displayChartDate(all.dates[index]!), ...matches.map(c=>c.text)].join('\n');
+            tooltip.hidden = false;
+            tooltip.style.left = `${Math.max(0,Math.min(event.clientX-rect.left+12,rect.width-tooltip.offsetWidth))}px`;
+            tooltip.style.top = `${Math.max(0,event.clientY-rect.top-tooltip.offsetHeight-12)}px`;
+            for (const path of Array.from(chart.querySelectorAll('path[data-series]'))) if (matches.some(c=>c.id===path.getAttribute('data-scenario')&&c.kind===path.getAttribute('data-series'))) path.setAttribute('stroke-width','4');
+        });
         if (!series.length) graph.append(element('p', 'Choose a Scenario to display.'));
         if (showCosts && costData.some(s => enabled.has(s.scenario.id) && s.values.includes(null))) graph.append(element('p', 'Some interest has no corresponding outstanding funding or preceding cash-flow date. Those annualised rates are unavailable and appear as gaps.'));
         if (costToggle.checked && (!costAccounts.length || !principalAccounts.length)) {
