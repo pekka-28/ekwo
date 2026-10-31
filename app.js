@@ -43,7 +43,7 @@ const requestReport=body=>planningRequest(dataClient.report(body));
 async function task(fn){if(busy)return;busy=true;document.body.setAttribute('aria-busy','true');notice();try{await fn()}catch(e){if($('editor').open)$('editor-error').textContent=e.message;else notice(e.message,true)}finally{busy=false;document.body.removeAttribute('aria-busy');if(pendingHistory){const view=pendingHistory;pendingHistory=null;task(()=>restoreView(view));}}}
 // Shared settings are intentional. Refuse actions based on an outdated display.
 function contextKey(workspace,presentation){
- return JSON.stringify({capture:workspace.active_case_id||null,
+ return JSON.stringify({capture:workspace.capture_batch_id||null,
   choices:workspace.cases.map(c=>[c.id,c.selected_scenario_id||null,c.shared_scenario_id||null]).sort((a,b)=>a[0].localeCompare(b[0])),
   presentation:caseId?{level:presentation?.level||'summary',transactions:presentation?.transactions||'journal'}:null});
 }
@@ -151,10 +151,21 @@ function renderCase(c){eventLevel=c.presentation?.level||'summary';eventMode=c.p
  $('case-level').onchange=e=>{const level=e.target.value;planningTask(()=>saveCasePresentation(c,level,eventMode));};
  $('case-view').onchange=e=>{const view=e.target.value;planningTask(()=>saveCasePresentation(c,eventLevel,view));};
  $('case-document').onclick=()=>planningTask(()=>openCaseDocument(c));$('past-reports').onclick=()=>task(()=>openReportRegister(c));
- if(overview.can_write&&c.kind!=='forecast'){$('page-actions').insertAdjacentHTML('afterbegin',action('capture-case',overview.active_case_id===c.id?'Stop capture':'Use for capture'));$('capture-case').onclick=()=>planningTask(async()=>{await rpc('capture_case',{p_company:companyId,p_case:overview.active_case_id===c.id?null:c.id});await refresh();});}
+ if(overview.can_write)for(const s of c.scenarios||[]){
+  const active=overview.capture_batch_id===s.batch_id;
+  if(!s.capture_eligible&&!active)continue;
+  const row=$('content').querySelector(`[data-edit="${s.id}"]`)?.parentElement;
+  if(!row)continue;
+  const button=document.createElement('button');button.dataset.capture=s.id;
+  button.textContent=active?'Stop capture':'Use for capture';
+  button.setAttribute('aria-label',(active?'Stop capture for ':'Use for capture: ')+s.name);
+  button.onclick=()=>planningTask(async()=>{await rpc('capture_set',{p_company:companyId,p_batch:active?null:s.batch_id});await refresh();});
+  row.append(button);
+ }
  $('case-timeline').onclick=()=>planningTask(()=>openCaseChart(c));
  if(c.notes)$('content').insertAdjacentHTML('afterbegin',`<details class="case-description"><summary>Case description</summary><div class="description-text">${esc(descriptionText(c.notes))}</div></details>`);
- if(overview.active_case_id===c.id)$('content').insertAdjacentHTML('afterbegin','<p class="capture-state">Active case for capture</p>');
+ const captureScenario=(c.scenarios||[]).find(s=>s.batch_id===overview.capture_batch_id);
+ if(captureScenario)$('content').insertAdjacentHTML('afterbegin',`<p class="capture-state">Capturing into ${esc(captureScenario.name)} — detail batch</p>`);
  for(const el of $('content').querySelectorAll('[data-events]'))el.onclick=()=>planningTask(()=>openEvents(c,c.scenarios.find(s=>s.id===el.dataset.events)));
  $('back-cases').onclick=e=>{e.preventDefault();caseId=null;render()};
  $('case-back').onclick=()=>{caseId=null;render()};
